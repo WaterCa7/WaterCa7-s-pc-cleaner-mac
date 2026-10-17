@@ -39,8 +39,13 @@ public class CodeSignatureTests
     [Fact]
     public void Verify()
     {
-        Assert.True(CodeSignatureParser.VerifyPassed(0, ""));
-        Assert.False(CodeSignatureParser.VerifyPassed(1, Fixture.Text("codesign/verify-invalid.txt")));
+        Assert.False(CodeSignatureParser.Tampered(new CommandResult(0, "", "")));
+        Assert.True(CodeSignatureParser.Tampered(new CommandResult(1, "", Fixture.Text("codesign/verify-invalid.txt"))));
+        Assert.True(CodeSignatureParser.Tampered(new CommandResult(1, "", "/Applications/X.app: a sealed resource is missing or invalid\nfile added: /Applications/X.app/Contents/Frameworks/evil.dylib")));
+        // Not proof of tampering: a timeout, a file codesign may not read, an old signature format.
+        Assert.False(CodeSignatureParser.Tampered(new CommandResult(1, "", Fixture.Text("codesign/verify-invalid.txt"), TimedOut: true)));
+        Assert.False(CodeSignatureParser.Tampered(new CommandResult(1, "", "/Applications/X.app: Permission denied")));
+        Assert.False(CodeSignatureParser.Tampered(new CommandResult(3, "", "/Applications/Old.app: resource envelope is obsolete (version 1 signature)")));
     }
 
     [Theory]
@@ -65,6 +70,16 @@ public class CodeSignatureTests
         Assert.Equal(SignatureKind.Invalid, (await service.GetAsync(app, CancellationToken.None)).Kind);
         await service.GetAsync(app, CancellationToken.None);
         Assert.Equal(2, fake.Calls.Count);
+    }
+
+    [Fact]
+    public async Task Service_WithoutVerify_RunsOnlyTheDetails()
+    {
+        var fake = new FakeCommandRunner()
+            .On("/usr/bin/codesign", new[] { "-dv", "--verbose=2", "/Applications/Big.app" }, new CommandResult(0, "", Fixture.Text("codesign/developer-id-dotnet.txt")));
+        var service = new CodeSignatureService(fake, _ => new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
+        Assert.Equal(SignatureKind.DeveloperId, (await service.GetAsync("/Applications/Big.app", CancellationToken.None, verify: false)).Kind);
+        Assert.Single(fake.Calls);
     }
 
     [Fact]

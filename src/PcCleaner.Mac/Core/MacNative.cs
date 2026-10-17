@@ -23,6 +23,9 @@ public static class MacNative
 
     public static bool IsAvailable => Foundation.Value != IntPtr.Zero;
 
+    /// <summary>The current user's id (501 for the first account on a Mac), or -1 where there is none (Windows).</summary>
+    public static int UserId => OperatingSystem.IsWindows() ? -1 : (int)getuid();
+
     /// <summary>Moves a file or folder to the Trash of its volume (Finder's «Вернуть» works).</summary>
     public static NativeTrashResult TrashItem(string path)
     {
@@ -95,6 +98,9 @@ public static class MacNative
 
         public void Dispose() => objc_autoreleasePoolPop(_pool);
     }
+
+    [DllImport("libc")]
+    private static extern uint getuid();
 
     [DllImport(ObjC)]
     private static extern IntPtr objc_getClass(string name);

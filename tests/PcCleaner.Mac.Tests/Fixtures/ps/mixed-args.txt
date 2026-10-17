@@ -1,0 +1,13 @@
+    1 /sbin/launchd
+  160 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemon
+  401 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+  402 /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/130.0/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer) --type=renderer
+  500 /private/var/folders/zz/abc/T/AppTranslocation/1234/d/Some App.app/Contents/MacOS/Some App
+  510 /private/tmp/.x/updater --silent
+  520 /Users/Shared/Agent/agent
+  530 /Users/anna/.cargo/bin/rust-analyzer
+  540 /Applications/MacKeeper.app/Contents/MacOS/MacKeeper
+  550 /Library/PrivilegedHelperTools/com.example.helper
+  560 dotnet exec /Users/anna/app.dll
+  570 /Users/anna/Downloads/gone
+  580 /opt/homebrew/opt/redis/bin/redis-server /opt/homebrew/etc/redis.conf

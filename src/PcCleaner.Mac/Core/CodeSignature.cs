@@ -90,9 +90,18 @@ public static class CodeSignatureParser
         return new SignatureInfo(kind, leaf, team, identifier);
     }
 
-    /// <summary>`codesign --verify --strict`: false when the signature no longer matches the file.</summary>
-    public static bool VerifyPassed(int exitCode, string output)
-        => exitCode == 0 || output.Contains("not signed at all", StringComparison.Ordinal);
+    private static readonly string[] TamperMarkers =
+    {
+        "invalid signature", "have been modified", "sealed resource is missing or invalid", "file added:", "file modified:", "file missing:",
+    };
+
+    /// <summary>
+    /// `codesign --verify --strict`: true only when the signature no longer matches the file. A timeout, a file it may
+    /// not read or an old signature format is not proof of tampering, so those keep the signature as it is.
+    /// </summary>
+    public static bool Tampered(CommandResult verify)
+        => !verify.TimedOut && verify.ExitCode != 0 && verify.ExitCode != CommandResult.NotStartedCode
+           && TamperMarkers.Any(m => (verify.StdErr + verify.StdOut).Contains(m, StringComparison.Ordinal));
 
     /// <summary>`spctl --assess --type execute -vv &lt;app&gt;` (stderr).</summary>
     public static GatekeeperVerdict ParseSpctl(string output, int exitCode)
@@ -112,36 +121,50 @@ public static class CodeSignatureParser
 public sealed class CodeSignatureService
 {
     private readonly ICommandRunner _runner;
-    private readonly ConcurrentDictionary<(string Path, DateTime Changed), SignatureInfo> _cache = new();
+    private readonly Func<string, DateTime> _stamp;
+    private readonly ConcurrentDictionary<(string Path, DateTime Changed, bool Verify), SignatureInfo> _cache = new();
 
-    public CodeSignatureService(ICommandRunner runner) => _runner = runner;
-
-    public async Task<SignatureInfo> GetAsync(string path, CancellationToken ct)
+    /// <param name="stamp">When the file last changed (default: from the disk; DateTime.MinValue when it is missing).</param>
+    public CodeSignatureService(ICommandRunner runner, Func<string, DateTime>? stamp = null)
     {
-        DateTime changed;
-        try
-        {
-            changed = Directory.Exists(path) ? Directory.GetLastWriteTimeUtc(path) : File.Exists(path) ? File.GetLastWriteTimeUtc(path) : default;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            changed = default;
-        }
+        _runner = runner;
+        _stamp = stamp ?? DiskStamp;
+    }
+
+    /// <param name="verify">
+    /// Also check that the files still match the signature. That reads the whole bundle (slow for Xcode-sized apps), so the
+    /// process list skips it: on Apple Silicon a binary with a broken signature cannot start anyway.
+    /// </param>
+    public async Task<SignatureInfo> GetAsync(string path, CancellationToken ct, bool verify = true)
+    {
+        var changed = _stamp(path);
         if (changed == default)
             return SignatureInfo.Unknown;
-        if (_cache.TryGetValue((path, changed), out var cached))
+        if (_cache.TryGetValue((path, changed, verify), out var cached))
             return cached;
 
         var details = await _runner.RunAsync("/usr/bin/codesign", new[] { "-dv", "--verbose=2", path }, TimeSpan.FromSeconds(30), ct);
         var info = CodeSignatureParser.Parse(details.StdErr + details.StdOut, details.ExitCode);
-        if (info.Kind is not (SignatureKind.Unsigned or SignatureKind.Unknown))
+        if (verify && info.Kind is not (SignatureKind.Unsigned or SignatureKind.Unknown))
         {
-            var verify = await _runner.RunAsync("/usr/bin/codesign", new[] { "--verify", "--strict", path }, TimeSpan.FromSeconds(60), ct);
-            if (!CodeSignatureParser.VerifyPassed(verify.ExitCode, verify.StdErr + verify.StdOut))
+            var check = await _runner.RunAsync("/usr/bin/codesign", new[] { "--verify", "--strict", path }, TimeSpan.FromSeconds(60), ct);
+            if (CodeSignatureParser.Tampered(check))
                 info = info with { Kind = SignatureKind.Invalid };
         }
-        _cache[(path, changed)] = info;
+        _cache[(path, changed, verify)] = info;
         return info;
+    }
+
+    private static DateTime DiskStamp(string path)
+    {
+        try
+        {
+            return Directory.Exists(path) ? Directory.GetLastWriteTimeUtc(path) : File.Exists(path) ? File.GetLastWriteTimeUtc(path) : default;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return default;
+        }
     }
 
     public async Task<GatekeeperVerdict> AssessAsync(string appPath, CancellationToken ct)
