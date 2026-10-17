@@ -1,19 +1,23 @@
 using System.Collections.ObjectModel;
 using PcCleaner.Core;
+using PcCleaner.Modules.Startup;
 
 namespace PcCleaner.Modules.Settings;
 
-/// <summary>«Настройки»: Full Disk Access, the log and where the program keeps its data.</summary>
+/// <summary>«Настройки»: Full Disk Access, backups of startup changes, the log and where the program keeps its data.</summary>
 public sealed class SettingsViewModel : PageViewModel
 {
     private readonly MacShell _shell;
     private readonly Func<FdaState> _checkFda;
+    private readonly BackupRestorer? _restorer;
     private FdaState _fda = FdaState.Unknown;
 
-    public SettingsViewModel(MacShell shell, Func<FdaState> checkFda)
+    public SettingsViewModel(MacShell shell, Func<FdaState> checkFda, BackupRestorer? restorer = null)
     {
         _shell = shell;
         _checkFda = checkFda;
+        _restorer = restorer;
+        OpenBackupsCommand = new AsyncRelayCommand(() => _shell.OpenAsync(AppPaths.EnsureDir(_restorer?.Store.Dir ?? AppPaths.BackupsDir)));
         RefreshFdaCommand = new RelayCommand(RefreshFda);
         OpenFdaSettingsCommand = new AsyncRelayCommand(() => _shell.OpenAsync(SystemSettingsLinks.FullDiskAccess));
         OpenRepoCommand = new AsyncRelayCommand(() => _shell.OpenAsync(AppInfo.RepoUrl));
@@ -23,7 +27,7 @@ public sealed class SettingsViewModel : PageViewModel
 
     public override string Title => "Настройки";
 
-    public override string Subtitle => "Полный доступ к диску, журнал и сведения о программе";
+    public override string Subtitle => "Полный доступ к диску, резервные копии, журнал и сведения о программе";
 
     public override string Icon => "Settings";
 
@@ -38,6 +42,15 @@ public sealed class SettingsViewModel : PageViewModel
     public string LogsDir => AppPaths.LogsDir;
 
     public ObservableCollection<LogEntry> LogEntries => Log.Entries;
+
+    /// <summary>Copies made before changes to startup items, the newest first.</summary>
+    public ObservableCollection<BackupItem> Backups { get; } = new();
+
+    public bool HasBackups => Backups.Count > 0;
+
+    public bool NoBackups => Backups.Count == 0;
+
+    public AsyncRelayCommand OpenBackupsCommand { get; }
 
     public FdaState Fda
     {
@@ -77,8 +90,39 @@ public sealed class SettingsViewModel : PageViewModel
     public override Task OnNavigatedToAsync()
     {
         RefreshFda();
+        RefreshBackups();
         return Task.CompletedTask;
     }
+
+    internal void RefreshBackups()
+    {
+        Backups.Clear();
+        foreach (var record in _restorer?.Store.List() ?? Array.Empty<BackupRecord>())
+            Backups.Add(new BackupItem(record, RestoreAsync, ShowAsync));
+        OnPropertyChanged(nameof(HasBackups));
+        OnPropertyChanged(nameof(NoBackups));
+    }
+
+    internal async Task RestoreAsync(BackupItem item)
+    {
+        if (_restorer is null)
+            return;
+        var question = $"{item.Title} ({item.WhatText}).\n\n{BackupRestorer.WhatRestoreDoes(item.Record)}";
+        if (!await Dialogs.ConfirmAsync("Восстановить из резервной копии?", question))
+            return;
+        StartupResult? result = null;
+        await RunBusyAsync("Восстанавливаю…", async ct => result = await _restorer.RestoreAsync(item.Record, ct));
+        if (result is null)
+            return;
+        if (result.Ok)
+            await Dialogs.InfoAsync("Восстановлено", result.Message);
+        else
+            await Dialogs.ErrorAsync("Не удалось восстановить", result.Message);
+        RefreshBackups();
+    }
+
+    private Task ShowAsync(BackupItem item)
+        => item.Record.StoredFile is { } file ? _shell.RevealAsync(file) : _shell.OpenAsync(AppPaths.EnsureDir(_restorer?.Store.Dir ?? AppPaths.BackupsDir));
 
     public override Task PreviewScanAsync(CancellationToken ct) => OnNavigatedToAsync();
 
