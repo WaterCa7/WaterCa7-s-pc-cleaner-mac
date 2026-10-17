@@ -24,8 +24,9 @@ public sealed class CleanerScanner
         // Other categories.
         "Homebrew", "pip", "Yarn", "CocoaPods", "Google", "Microsoft Edge", "BraveSoftware", "com.operasoftware.Opera", "Yandex",
         "Firefox", "Mozilla",
-        // macOS services without a com.apple. name.
-        "CloudKit", "FamilyCircle", "GeoServices", "PassKit", "SiriTTS", "ColorSync", "Metal", "TemporaryItems",
+        // macOS services without a com.apple. name ("softwareupdate" may hold a downloaded macOS update).
+        "CloudKit", "FamilyCircle", "GeoServices", "PassKit", "SiriTTS", "ColorSync", "Metal", "TemporaryItems", "Animoji",
+        "softwareupdate",
         // This program.
         AppInfo.BundleId, "WaterCa7sPcCleaner",
     };

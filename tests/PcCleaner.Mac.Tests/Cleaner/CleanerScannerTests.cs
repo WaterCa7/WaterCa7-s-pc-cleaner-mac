@@ -58,6 +58,8 @@ public class CleanerScannerTests
         home.Old("Library/Caches/Homebrew/downloads/y.tar.gz");
         home.Old("Library/Caches/Google/Chrome/Default/Cache/z");
         home.Old("Library/Caches/CloudKit/db");
+        home.Old("Library/Caches/Animoji/a");
+        home.Old("Library/Caches/softwareupdate/macOS 26.1.pkg");
         var scan = Scan(home, CleanerCatalog.AppCaches);
         var target = Assert.Single(scan.Targets);
         Assert.Equal("com.spotify.client", target.Title);
