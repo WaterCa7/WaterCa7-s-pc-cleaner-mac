@@ -110,8 +110,27 @@ if [[ -n "$app" && -d "$app" ]]; then
   run2 spctl-app /usr/sbin/spctl --assess --type execute -vv "$app"
 fi
 
-# Stage 4: programs.
+# Stage 4: programs (bundle facts and folder listings; nothing inside the users' data is read).
 run mdls-calculator /usr/bin/mdls -name kMDItemLastUsedDate -raw /System/Applications/Calculator.app
+run ls-applications /bin/ls -la /Applications /Applications/Utilities "$HOME/Applications"
+run ls-system-applications /bin/ls -1 /System/Applications /System/Applications/Utilities
+run ls-app-support /bin/ls -la "$HOME/Library/Application Support"
+run ls-preferences /bin/ls -la "$HOME/Library/Preferences" "$HOME/Library/Preferences/ByHost"
+run ls-containers /bin/ls -la "$HOME/Library/Containers"
+run ls-group-containers /bin/ls -la "$HOME/Library/Group Containers"
+run ls-saved-state /bin/ls -la "$HOME/Library/Saved Application State"
+run ls-httpstorages /bin/ls -la "$HOME/Library/HTTPStorages" "$HOME/Library/WebKit"
+for bundle in /Applications/*.app /Applications/*/*.app "$HOME"/Applications/*.app; do
+  [[ -d "$bundle" ]] || continue
+  name="$(basename "$bundle" .app | tr -c 'A-Za-z0-9._-\n' '_')"
+  run "app-plist-$name" /usr/bin/plutil -convert xml1 -o - "$bundle/Contents/Info.plist"
+  exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$bundle/Contents/Info.plist" 2>/dev/null || true)"
+  if [[ -n "$exe" ]]; then
+    run "app-lipo-$name" /usr/bin/lipo -archs "$bundle/Contents/MacOS/$exe"
+  fi
+  run "app-lastused-$name" /usr/bin/mdls -name kMDItemLastUsedDate -raw "$bundle"
+  run "app-contents-$name" /bin/ls -la "$bundle/Contents"
+done
 
 # Stage 5: security and network.
 run spctl-status /usr/sbin/spctl --status
