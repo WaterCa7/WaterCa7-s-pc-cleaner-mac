@@ -81,6 +81,19 @@ run launchctl-print-gui /bin/launchctl print "gui/$uid"
 run launchctl-disabled-gui /bin/launchctl print-disabled "gui/$uid"
 run launchctl-disabled-system /bin/launchctl print-disabled system
 run ls-launch /bin/ls -la "$HOME/Library/LaunchAgents" /Library/LaunchAgents /Library/LaunchDaemons
+run launchctl-print-sshd /bin/launchctl print system/com.openssh.sshd
+run launchctl-print-finder /bin/launchctl print "gui/$uid/com.apple.Finder"
+run launchctl-print-missing /bin/launchctl print "gui/$uid/io.github.waterca7.no-such-service"
+for plist in /Library/LaunchDaemons/*.plist /Library/LaunchAgents/*.plist "$HOME"/Library/LaunchAgents/*.plist; do
+  [[ -f "$plist" ]] || continue
+  name="$(basename "$plist" .plist)"
+  run "launchd-plist-$name" /usr/bin/plutil -convert xml1 -o - "$plist"
+  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "$plist" 2>/dev/null || true)"
+  if [[ -n "$label" ]]; then
+    run "launchctl-print-system-$name" /bin/launchctl print "system/$label"
+    run "launchctl-print-gui-$name" /bin/launchctl print "gui/$uid/$label"
+  fi
+done
 run sshd-plist /usr/bin/plutil -convert xml1 -o - /System/Library/LaunchDaemons/com.openssh.sshd.plist
 run2 codesign-ls /usr/bin/codesign -dv --verbose=2 /bin/ls
 run2 codesign-calculator /usr/bin/codesign -dv --verbose=2 /System/Applications/Calculator.app
