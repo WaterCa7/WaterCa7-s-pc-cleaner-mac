@@ -22,14 +22,14 @@ public static class ProcessesRules
         var issues = new List<HealthIssue>();
 
         // Processes reach the dashboard only with a strong sign; an app's helpers are one finding.
-        foreach (var group in processes.Where(p => p.HasStrongHint).GroupBy(p => p.Location ?? p.Info.Command, StringComparer.Ordinal))
+        foreach (var group in processes.Where(p => p.HasStrongHint).GroupBy(p => p.Location ?? p.Info.Executable, StringComparer.Ordinal))
         {
             var first = group.First();
             issues.Add(new HealthIssue
             {
                 Module = ModuleName,
                 Title = $"Подозрительный процесс «{first.Info.Name}»",
-                Details = $"{Reasons(first.Hints)}. Путь: {first.Info.Command}. {NotAVirus}",
+                Details = $"{Reasons(first.Hints)}. Путь: {first.Info.Executable}. {NotAVirus}",
                 Severity = IssueSeverity.High,
                 TargetPageKey = PageKey,
             });

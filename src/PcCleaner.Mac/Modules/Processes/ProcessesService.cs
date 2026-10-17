@@ -13,7 +13,7 @@ public sealed record ProcessEntry(ProcessInfo Info, bool IsSystem, string? Prote
     public bool HasStrongHint => Hints.Any(h => h.Strong);
 
     /// <summary>What to show in Finder and check: the app bundle when there is one, else the executable.</summary>
-    public string? Location => Info.AppBundle ?? (Info.HasPath ? Info.Command : null);
+    public string? Location => Info.AppBundle ?? (Info.HasPath ? Info.Executable : null);
 }
 
 public sealed record ProcessList(IReadOnlyList<ProcessEntry> Items, string? Error)
@@ -37,12 +37,14 @@ public sealed class ProcessesService
     private readonly CodeSignatureService _signatures;
     private readonly int _ownPid;
     private readonly Func<string, bool> _missing;
+    private readonly Func<int, string?> _executablePath;
     private readonly TimeSpan _exitWait;
 
     /// <param name="missing">Whether a program file is gone (default: from the disk; a file the app may not read is not "gone").</param>
     /// <param name="exitWait">How long to wait for a process to end after the signal.</param>
+    /// <param name="executablePath">The path of a process `ps` knows only by name (default: asks macOS).</param>
     public ProcessesService(ICommandRunner runner, CodeSignatureService signatures, int ownPid, int ownUid,
-        Func<string, bool>? missing = null, TimeSpan? exitWait = null)
+        Func<string, bool>? missing = null, TimeSpan? exitWait = null, Func<int, string?>? executablePath = null)
     {
         _runner = runner;
         _signatures = signatures;
@@ -50,6 +52,7 @@ public sealed class ProcessesService
         OwnUid = ownUid;
         _missing = missing ?? FileMissing;
         _exitWait = exitWait ?? TimeSpan.FromSeconds(5);
+        _executablePath = executablePath ?? MacNative.ProcessPath;
     }
 
     public int OwnUid { get; }
@@ -63,8 +66,10 @@ public sealed class ProcessesService
         if (!comm.Ok)
             return ProcessList.Failed("не удалось получить список процессов" + Reason(comm));
 
-        var processes = ProcessParsers.Join(comm.StdOut, args.Ok ? args.StdOut : "");
-        var paths = processes.Where(p => p.HasPath && !ProcessRules.IsSystemPath(p.Command)).Select(SignaturePath).Distinct().ToList();
+        var processes = ProcessParsers.Join(comm.StdOut, args.Ok ? args.StdOut : "")
+            .Select(p => p.HasPath || _executablePath(p.Pid) is not { } path || !path.StartsWith('/') ? p : p with { ExecutablePath = path })
+            .ToList();
+        var paths = processes.Where(p => p.HasPath && !ProcessRules.IsSystemPath(p.Executable)).Select(SignaturePath).Distinct().ToList();
         var signatures = await SignaturesAsync(paths, ct);
         return new ProcessList(processes.Select(p => Entry(p, signatures)).ToList(), null);
     }
@@ -143,22 +148,22 @@ public sealed class ProcessesService
 
     private ProcessEntry Entry(ProcessInfo process, IReadOnlyDictionary<string, SignatureInfo> signatures)
     {
-        var system = process.HasPath ? ProcessRules.IsSystemPath(process.Command) : process.Uid != OwnUid;
+        var system = process.HasPath ? ProcessRules.IsSystemPath(process.Executable) : process.Uid != OwnUid;
         var signature = process.HasPath ? signatures.GetValueOrDefault(SignaturePath(process)) : null;
         var hints = new List<Hint>();
-        if (process.HasPath && !system && _missing(process.Command))
+        if (process.HasPath && !system && _missing(process.Executable))
         {
-            hints.Add(InstallPrefixes.Any(p => process.Command.StartsWith(p, StringComparison.Ordinal))
+            hints.Add(InstallPrefixes.Any(p => process.Executable.StartsWith(p, StringComparison.Ordinal))
                 ? new Hint("программа обновилась или удалена после запуска — её стоит перезапустить", false)
                 : new Hint("файл программы удалён после запуска — так часто делают вредоносные программы", true));
         }
         var appName = process.AppBundle is { } bundle ? Path.GetFileNameWithoutExtension(bundle) : null;
-        hints.AddRange(ProcessRules.Hints(process.Command, signature, appName, signature?.Identifier));
+        hints.AddRange(ProcessRules.Hints(process.Executable, signature, appName, signature?.Identifier));
         return new ProcessEntry(process, system, ProcessRules.WhyProtected(process, _ownPid, OwnUid), signature, hints);
     }
 
     // Helpers of one app (Chrome has dozens) share the app's signature: check the bundle once.
-    private static string SignaturePath(ProcessInfo process) => process.AppBundle ?? process.Command;
+    private static string SignaturePath(ProcessInfo process) => process.AppBundle ?? process.Executable;
 
     private async Task<IReadOnlyDictionary<string, SignatureInfo>> SignaturesAsync(IReadOnlyList<string> paths, CancellationToken ct)
     {
@@ -179,6 +184,7 @@ public sealed class ProcessesService
         return result;
     }
 
+    // Compared with what `ps` printed for it (the name, for a program started by name), not with the resolved path.
     private static bool SameProcess(string psLine, ProcessInfo expected)
     {
         var line = psLine.Trim();

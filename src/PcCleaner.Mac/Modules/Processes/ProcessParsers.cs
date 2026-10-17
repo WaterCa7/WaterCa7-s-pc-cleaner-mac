@@ -5,21 +5,26 @@ namespace PcCleaner.Modules.Processes;
 
 /// <summary>
 /// A running process as `ps` sees it. <see cref="Command"/> is usually the full path of the executable, but just a name
-/// when the program was started without one (e.g. "dotnet").
+/// when the program was started without one (e.g. "dotnet" from Terminal); <see cref="ExecutablePath"/> is then the path
+/// macOS knows for it (proc_pidpath), when it tells.
 /// </summary>
-public sealed record ProcessInfo(int Pid, int Ppid, int Uid, double CpuPercent, long MemoryBytes, TimeSpan Elapsed, string Command, string? CommandLine)
+public sealed record ProcessInfo(int Pid, int Ppid, int Uid, double CpuPercent, long MemoryBytes, TimeSpan Elapsed, string Command, string? CommandLine,
+    string? ExecutablePath = null)
 {
-    public bool HasPath => Command.StartsWith('/');
+    /// <summary>The executable: its full path when known, else what `ps` printed.</summary>
+    public string Executable => ExecutablePath ?? Command;
 
-    public string Name => Path.GetFileName(Command.TrimEnd('/')) is { Length: > 0 } name ? name : Command;
+    public bool HasPath => Executable.StartsWith('/');
+
+    public string Name => Path.GetFileName(Executable.TrimEnd('/')) is { Length: > 0 } name ? name : Executable;
 
     /// <summary>The app bundle the executable belongs to ("/Applications/Safari.app"), or null.</summary>
     public string? AppBundle
     {
         get
         {
-            var at = Command.IndexOf(".app/", StringComparison.Ordinal);
-            return HasPath && at > 0 ? Command[..(at + 4)] : null;
+            var at = Executable.IndexOf(".app/", StringComparison.Ordinal);
+            return HasPath && at > 0 ? Executable[..(at + 4)] : null;
         }
     }
 }

@@ -26,7 +26,7 @@ public class ProcessesViewModelTests
                     new CommandResult(0, "", Fixture.Text("codesign/developer-id-dotnet.txt")));
             var signatures = new CodeSignatureService(Fake, _ => new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
             Func<string, bool> missing = path => path.Contains("/missing/", StringComparison.Ordinal) || path.EndsWith("/gone", StringComparison.Ordinal);
-            var processes = new ProcessesService(Fake, signatures, 999, 501, missing, TimeSpan.Zero);
+            var processes = new ProcessesService(Fake, signatures, 999, 501, missing, TimeSpan.Zero, _ => null);
             var startup = new StartupService(Home.Folders, 501, Fake, signatures, Home.Backups, new AdminPrompt(Fake), Trash, missing);
             Vm = new ProcessesViewModel(processes, startup, new LoginItemsService(Fake, Home.Backups), new MacShell(Fake));
         }

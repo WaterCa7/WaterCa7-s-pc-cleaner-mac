@@ -295,7 +295,7 @@ public sealed class ProcessesViewModel : PageViewModel
 
     private async Task VirusTotalAsync(ProcessRow row)
     {
-        var hash = await ProcessesService.Sha256Async(row.Entry.Info.Command, CancellationToken.None);
+        var hash = await ProcessesService.Sha256Async(row.Entry.Info.Executable, CancellationToken.None);
         if (hash is null)
         {
             await Dialogs.ErrorAsync("VirusTotal", $"Не удалось прочитать файл «{row.PathText}», чтобы посчитать его отпечаток.");

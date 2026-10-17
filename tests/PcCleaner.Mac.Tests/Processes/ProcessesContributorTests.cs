@@ -105,7 +105,7 @@ public class ProcessesContributorTests
         var signatures = new CodeSignatureService(fake, _ => new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
         var missing = (string path) => path.Contains("/missing/", StringComparison.Ordinal) || path.EndsWith("/gone", StringComparison.Ordinal);
         var contributor = new ProcessesContributor(
-            new ProcessesService(fake, signatures, 999, 501, missing),
+            new ProcessesService(fake, signatures, 999, 501, missing, executablePath: _ => null),
             new StartupService(home.Folders, 501, fake, signatures, home.Backups, new AdminPrompt(fake), new CleanerViewModelTests.FakeTrash(), missing),
             Home);
         var issues = await contributor.AnalyzeAsync(CancellationToken.None);

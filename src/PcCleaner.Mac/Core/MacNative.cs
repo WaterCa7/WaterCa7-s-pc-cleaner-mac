@@ -26,6 +26,19 @@ public static class MacNative
     /// <summary>The current user's id (501 for the first account on a Mac), or -1 where there is none (Windows).</summary>
     public static int UserId => OperatingSystem.IsWindows() ? -1 : (int)getuid();
 
+    /// <summary>
+    /// The full path of a running program (libproc proc_pidpath), or null: off macOS, when the process has ended, or when
+    /// macOS does not tell (another user's process).
+    /// </summary>
+    public static string? ProcessPath(int pid)
+    {
+        if (!OperatingSystem.IsMacOS() || pid <= 0)
+            return null;
+        var buffer = new byte[ProcPidPathMaxSize];
+        var length = proc_pidpath(pid, buffer, (uint)buffer.Length);
+        return length > 0 ? System.Text.Encoding.UTF8.GetString(buffer, 0, length) : null;
+    }
+
     /// <summary>Moves a file or folder to the Trash of its volume (Finder's «Вернуть» works).</summary>
     public static NativeTrashResult TrashItem(string path)
     {
@@ -101,6 +114,12 @@ public static class MacNative
 
     [DllImport("libc")]
     private static extern uint getuid();
+
+    // PROC_PIDPATHINFO_MAXSIZE = 4 * MAXPATHLEN.
+    private const int ProcPidPathMaxSize = 4 * 1024;
+
+    [DllImport("libc")]
+    private static extern int proc_pidpath(int pid, byte[] buffer, uint bufferSize);
 
     [DllImport(ObjC)]
     private static extern IntPtr objc_getClass(string name);

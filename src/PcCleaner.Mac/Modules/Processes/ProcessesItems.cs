@@ -23,7 +23,7 @@ public sealed class ProcessRow
 
     public string Name => Entry.Info.Name;
 
-    public string PathText => Entry.Info.HasPath ? Entry.Info.Command : "путь неизвестен";
+    public string PathText => Entry.Info.HasPath ? Entry.Info.Executable : "путь неизвестен";
 
     public string CommandLine => Entry.Info.CommandLine ?? Entry.Info.Command;
 

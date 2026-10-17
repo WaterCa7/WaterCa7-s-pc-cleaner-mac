@@ -31,7 +31,7 @@ public class ProcessesServiceTests
 
     private static ProcessesService Service(FakeCommandRunner fake)
         => new(fake, new CodeSignatureService(fake, _ => Stamp), ownPid: 999, ownUid: 501,
-            missing: path => path.EndsWith("/gone", StringComparison.Ordinal), exitWait: TimeSpan.Zero);
+            missing: path => path.EndsWith("/gone", StringComparison.Ordinal), exitWait: TimeSpan.Zero, executablePath: _ => null);
 
     [Fact]
     public async Task List_ChecksEachProgramOnce_AndSkipsMacOS()
@@ -87,10 +87,35 @@ public class ProcessesServiceTests
         var fake = new FakeCommandRunner()
             .On("/bin/ps", CommArgs, new CommandResult(0, "  700     1   501   0.0   1024 05:00 /opt/homebrew/Cellar/redis/7.1/bin/redis-server\n", ""))
             .On("/bin/ps", ArgsArgs, new CommandResult(0, "", ""));
-        var service = new ProcessesService(fake, new CodeSignatureService(fake, _ => Stamp), 999, 501, missing: _ => true, exitWait: TimeSpan.Zero);
+        var service = new ProcessesService(fake, new CodeSignatureService(fake, _ => Stamp), 999, 501, missing: _ => true, exitWait: TimeSpan.Zero,
+            executablePath: _ => null);
         var entry = Assert.Single((await service.ListAsync(CancellationToken.None)).Items);
         Assert.False(entry.HasStrongHint);
         Assert.Contains(entry.Hints, h => h.Text.StartsWith("программа обновилась", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task StartedByName_GetsItsRealPath_ButIsStoppedByWhatPsPrints()
+    {
+        var fake = new FakeCommandRunner()
+            .On("/bin/ps", CommArgs, new CommandResult(0, "  560     1   501   0.0   1024 05:00 dotnet\n  561     1   501   0.0   1024 05:00 helper\n", ""))
+            .On("/bin/ps", ArgsArgs, new CommandResult(0, "  560 dotnet exec app.dll\n", ""))
+            .On("/bin/ps", new[] { "-p", "560", "-o", "uid=,comm=" }, new CommandResult(0, "  501 dotnet\n", ""))
+            .On("/bin/kill", new[] { "-TERM", "560" }, new CommandResult(0, "", ""))
+            .On("/bin/kill", new[] { "-0", "560" }, new CommandResult(1, "", ""));
+        Codesign(fake, "/private/tmp/x/dotnet", 1, "codesign/unsigned.txt");
+        var service = new ProcessesService(fake, new CodeSignatureService(fake, _ => Stamp), 999, 501, _ => false, TimeSpan.Zero,
+            pid => pid == 560 ? "/private/tmp/x/dotnet" : null);
+        var items = (await service.ListAsync(CancellationToken.None)).Items.ToDictionary(e => e.Info.Pid);
+
+        var dotnet = items[560];
+        Assert.Equal(("/private/tmp/x/dotnet", "dotnet", "/private/tmp/x/dotnet"), (dotnet.Info.Executable, dotnet.Info.Name, dotnet.Location));
+        Assert.Equal(SignatureKind.Unsigned, dotnet.Signature!.Kind);
+        Assert.True(dotnet.HasStrongHint);
+        Assert.False(items[561].Info.HasPath);
+
+        Assert.True((await service.TerminateAsync(dotnet, force: false, CancellationToken.None)).Ok);
+        Assert.Contains("/bin/kill -TERM 560", fake.Calls);
     }
 
     [Fact]
@@ -178,5 +203,7 @@ public class ProcessesServiceTests
         Assert.Equal("это сама программа", list.Items.Single(e => e.Info.Pid == Environment.ProcessId).Protected);
         Assert.True(list.Items.Single(e => e.Info.Pid == 1).IsSystem);
         Assert.True(await service.IsAliveAsync(Environment.ProcessId, CancellationToken.None));
+        Assert.StartsWith("/", MacNative.ProcessPath(Environment.ProcessId));
+        Assert.True(list.Items.Single(e => e.Info.Pid == Environment.ProcessId).Info.HasPath);
     }
 }
