@@ -122,7 +122,7 @@ run ls-saved-state /bin/ls -la "$HOME/Library/Saved Application State"
 run ls-httpstorages /bin/ls -la "$HOME/Library/HTTPStorages" "$HOME/Library/WebKit"
 for bundle in /Applications/*.app /Applications/*/*.app "$HOME"/Applications/*.app; do
   [[ -d "$bundle" ]] || continue
-  name="$(basename "$bundle" .app | tr -c 'A-Za-z0-9._-\n' '_')"
+  name="$(basename "$bundle" .app | LC_ALL=C tr -c 'A-Za-z0-9._\n-' '_')"
   run "app-plist-$name" /usr/bin/plutil -convert xml1 -o - "$bundle/Contents/Info.plist"
   exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$bundle/Contents/Info.plist" 2>/dev/null || true)"
   if [[ -n "$exe" ]]; then
