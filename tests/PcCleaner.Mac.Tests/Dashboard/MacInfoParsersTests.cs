@@ -43,6 +43,36 @@ public class MacInfoParsersTests
         Assert.Equal("4", hw.Cores);
     }
 
+    // Real output of the GitHub Actions runners (macOS 14 and 26, Apple Silicon virtual machines).
+    [Theory]
+    [InlineData("sw_vers/runner-macos14.txt", "14.8.9", "23J631")]
+    [InlineData("sw_vers/runner-macos26.txt", "26.6.2", "25G83")]
+    public void SwVers_Runners(string fixture, string version, string build)
+    {
+        var (name, v, b) = MacInfoParsers.ParseSwVers(Fixture.Text(fixture));
+        Assert.Equal(("macOS", version, build), (name, v, b));
+    }
+
+    [Fact]
+    public void Hardware_VirtualMac_HasANumericProcessorCount()
+    {
+        var hw = MacInfoParsers.ParseHardware(Fixture.Text("system_profiler/hardware-runner-vm.json"))!;
+        Assert.Equal(("Apple Virtual Machine 1", "VirtualMac2,1", "Apple M1 (Virtual)", "3"), (hw.ModelName, hw.ModelId, hw.Chip, hw.Cores));
+        Assert.Equal(7L << 30, hw.MemoryBytes);
+    }
+
+    [Theory]
+    [InlineData("df/runner-macos14.txt", 335032320L, 37839180L)]
+    [InlineData("df/runner-macos26.txt", 335032320L, 96307596L)]
+    public void Df_Runners(string fixture, long totalKb, long freeKb)
+    {
+        var disk = MacInfoParsers.ParseDf(Fixture.Text(fixture))!;
+        Assert.Equal(("/System/Volumes/Data", totalKb * 1024, freeKb * 1024), (disk.Mount, disk.TotalBytes, disk.FreeBytes));
+    }
+
+    [Fact]
+    public void BootTime_Runner() => Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1792262259), MacInfoParsers.ParseBootTime(Fixture.Text("sysctl/boottime-runner.txt")));
+
     [Theory]
     [InlineData("")]
     [InlineData("{}")]

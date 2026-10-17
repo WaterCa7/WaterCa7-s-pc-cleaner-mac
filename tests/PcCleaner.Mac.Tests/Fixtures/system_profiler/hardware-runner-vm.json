@@ -1,0 +1,19 @@
+{
+  "SPHardwareDataType" : [
+    {
+      "_name" : "hardware_overview",
+      "activation_lock_status" : "activation_lock_disabled",
+      "boot_rom_version" : "mBoot-18000.161.9",
+      "chip_type" : "Apple M1 (Virtual)",
+      "machine_model" : "VirtualMac2,1",
+      "machine_name" : "Apple Virtual Machine 1",
+      "model_number" : "VM0001LL/A",
+      "number_processors" : 3,
+      "os_loader_version" : "10151.140.19.702.3",
+      "physical_memory" : "7 GB",
+      "platform_UUID" : "00000000",
+      "provisioning_UDID" : "00000000",
+      "serial_number" : "XXXXXXXXXX"
+    }
+  ]
+}
