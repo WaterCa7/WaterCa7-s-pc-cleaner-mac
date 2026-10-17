@@ -1,0 +1,4 @@
+Snapshots for disk /:
+com.apple.TimeMachine.2026-10-17-101530.local
+com.apple.TimeMachine.2026-10-16-221004.local
+com.apple.TimeMachine.2026-10-17-111531.local
