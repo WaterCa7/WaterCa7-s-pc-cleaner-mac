@@ -29,6 +29,9 @@
   <ItemGroup>
     <!-- Captured macOS tool output (Fixture.Text). -->
     <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Packaging files checked by Packaging/*Tests. -->
+    <None Include="..\..\src\PcCleaner.Mac\Assets\AppIcon.icns" Link="Assets\AppIcon.icns" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\tools\mac\Info.plist" Link="Assets\Info.plist" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
