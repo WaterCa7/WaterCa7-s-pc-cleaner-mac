@@ -22,6 +22,13 @@ if [[ -n "${MAC_SIGNING_P12:-}" ]]; then
   }
   trap cleanup EXIT
   printf '%s' "$MAC_SIGNING_P12" | base64 --decode > "$work/cert.p12"
+  echo "cert.p12: $(wc -c < "$work/cert.p12" | tr -d ' ') bytes, password: ${#MAC_SIGNING_PASSWORD} characters"
+  # Tells a wrong password from a format the keychain does not accept (prints nothing secret).
+  if MAC_SIGNING_PASSWORD="${MAC_SIGNING_PASSWORD:-}" openssl pkcs12 -in "$work/cert.p12" -noout -passin env:MAC_SIGNING_PASSWORD >/dev/null 2>&1; then
+    echo "openssl: the password opens cert.p12"
+  else
+    echo "openssl: cert.p12 does not open with this password" >&2
+  fi
   security create-keychain -p "$password" "$keychain"
   security set-keychain-settings -lut 3600 "$keychain"
   security unlock-keychain -p "$password" "$keychain"
