@@ -1,0 +1,51 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  mac-app:
+    name: Mac app (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-14 = the oldest supported macOS (Sonoma), macos-latest = the current one; both Apple Silicon.
+        os: [macos-14, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - name: Build
+        run: dotnet build WaterCa7sPcCleaner.Mac.sln -c Release
+      - name: Tests (they also save the pages on fixture data)
+        run: dotnet test WaterCa7sPcCleaner.Mac.sln -c Release --no-build
+        env:
+          MAC_SCREENSHOTS_DIR: ${{ github.workspace }}/demo-screenshots
+      - name: Screenshots of this Mac (read-only)
+        run: dotnet src/PcCleaner.Mac/bin/Release/net10.0/WaterCa7sPcCleaner.dll --screenshots screenshots
+      - name: Build and sign the .app
+        if: matrix.os == 'macos-latest'
+        env:
+          MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
+          MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
+        run: tools/mac/make-app.sh out
+      - name: Capture tool output for fixtures (read-only)
+        if: always()
+        run: tools/mac/capture-fixtures.sh fixtures "out/WaterCa7s PC Cleaner.app"
+      - uses: actions/upload-artifact@v7
+        if: matrix.os == 'macos-latest'
+        with:
+          path: out/WaterCa7sPcCleaner-osx-arm64.zip
+          archive: false
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mac-screenshots-${{ matrix.os }}
+          path: |
+            screenshots
+            demo-screenshots
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mac-fixtures-${{ matrix.os }}
+          path: fixtures
