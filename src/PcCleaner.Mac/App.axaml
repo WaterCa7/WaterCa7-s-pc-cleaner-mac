@@ -3,6 +3,7 @@
              xmlns:cleaner="using:PcCleaner.Modules.Cleaner"
              xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
              xmlns:processes="using:PcCleaner.Modules.Processes"
+             xmlns:programs="using:PcCleaner.Modules.Programs"
              xmlns:settings="using:PcCleaner.Modules.Settings"
              xmlns:shell="using:PcCleaner.Shell"
              x:Class="PcCleaner.App"
@@ -37,6 +38,9 @@
     </DataTemplate>
     <DataTemplate DataType="processes:ProcessesViewModel">
       <processes:ProcessesView />
+    </DataTemplate>
+    <DataTemplate DataType="programs:ProgramsViewModel">
+      <programs:ProgramsView />
     </DataTemplate>
     <DataTemplate DataType="settings:SettingsViewModel">
       <settings:SettingsView />

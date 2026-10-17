@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using PcCleaner.Core;
 using PcCleaner.Mac.Tests.Dashboard;
 using PcCleaner.Mac.Tests.Support;
+using PcCleaner.Modules.Programs;
 using PcCleaner.Modules.Startup;
 using PcCleaner.Shell;
 using Xunit;
@@ -19,7 +20,13 @@ public class WindowTests
     /// <summary>Empty startup folders in the test root: the window tests never read the machine's own launchd plists.</summary>
     internal static readonly StartupFolders EmptyStartup = MakeEmptyStartup();
 
-    internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings(), EmptyStartup);
+    /// <summary>Empty app folders in the test root: the window tests never list the machine's own apps.</summary>
+    internal static readonly AppFolders EmptyApps = new(
+        Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "apps", "Applications")).FullName,
+        Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "apps", "UserApplications")).FullName,
+        new[] { Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "apps", "System")).FullName });
+
+    internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings(), EmptyStartup, EmptyApps);
 
     private static StartupFolders MakeEmptyStartup()
     {
@@ -111,7 +118,7 @@ public class WindowTests
         var vm = DemoViewModel(MacInfoServiceTests.Mac());
         using var shown = new ShownWindow(vm);
         var window = shown.Window;
-        vm.NavigateTo("Programs");
+        vm.NavigateTo("Security");
         Dispatcher.UIThread.RunJobs();
         Assert.Contains("Раздел появится в следующей сборке", Texts(window));
     }

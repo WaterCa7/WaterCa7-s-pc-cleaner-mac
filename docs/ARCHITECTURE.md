@@ -29,11 +29,11 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 | Dashboard  | Главная                 | 1    | — (собирает все остальные)                  |
 | Cleaner    | Очистка и диски         | 2    | CleanerContributor                          |
 | Processes  | Процессы и автозагрузка | 3    | ProcessesContributor                        |
-| Programs   | Программы               | 4    |                                             |
+| Programs   | Программы               | 4    | ProgramsContributor                         |
 | Security   | Безопасность и сеть     | 5    |                                             |
 | Settings   | Настройки               | 1    | —                                           |
 
-Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?)`; разделы, которых ещё нет, —
+Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?, appFolders?)`; разделы, которых ещё нет, —
 `UpcomingPageViewModel`. Новый раздел: сервис + `PageViewModel` + `UserControl` с `x:DataType`, шаблон в
 `App.axaml` (`Application.DataTemplates`), строка в `PageFactory`.
 
@@ -83,6 +83,19 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 - `LoginItemsService` — объекты входа через System Events (только по кнопке; имена и пути — аргументы скрипта).
 - `BackupRestorer` — «Восстановить» в «Настройках»: отменяет изменение (включает снова, возвращает plist, снова
   добавляет объект входа).
+
+## Программы
+
+- `AppCatalog`: `/Applications/*.app`, `/Applications/<папка>/*.app`, `~/Applications`, встроенные `/System/Applications`
+  — по флажку, только просмотр; ссылки не открываются (Safari и псевдонимы Xcode — ссылки). `Info.plist`, `_MASReceipt`,
+  архитектура — `MachO.Read` по заголовку основного файла, последний запуск — один вызов `mdls` на все программы
+  (значения через ` `), подпись — без полной проверки файлов, свой деинсталлятор, `MacPups`. Размер — `MeasureAsync`
+  в фоне.
+- `LeftoverFinder`: остатки в `~/Library` только по точному bundle id и точному имени (общие папки и имена других
+  программ — без галочки), `Containers` — только с полным доступом, ссылки не берутся.
+- `ProgramsService.UninstallAsync`: программа → Корзина, только потом отмеченные остатки; не удалось с программой —
+  остатки не трогаются. Модель страницы перед этим: подтверждение со списком → «закройте программу» (принудительно —
+  отдельным «Да») → свой деинсталлятор.
 
 ## Тема
 

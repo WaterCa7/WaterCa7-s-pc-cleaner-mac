@@ -2,6 +2,7 @@ using PcCleaner.Core;
 using PcCleaner.Modules.Cleaner;
 using PcCleaner.Modules.Dashboard;
 using PcCleaner.Modules.Processes;
+using PcCleaner.Modules.Programs;
 using PcCleaner.Modules.Settings;
 using PcCleaner.Modules.Startup;
 
@@ -11,7 +12,9 @@ namespace PcCleaner.Shell;
 public static class PageFactory
 {
     /// <param name="startupFolders">Where launchd plists are read from (tests point these at a temporary folder).</param>
-    public static MainViewModel CreateMain(ICommandRunner runner, AppSettings settings, StartupFolders? startupFolders = null)
+    /// <param name="appFolders">Where apps are looked for (tests point these at a temporary folder).</param>
+    public static MainViewModel CreateMain(ICommandRunner runner, AppSettings settings, StartupFolders? startupFolders = null,
+        AppFolders? appFolders = null)
     {
         var navigator = new DeferredNavigator();
         var info = new MacInfoService(runner);
@@ -27,6 +30,8 @@ public static class PageFactory
         var processes = new ProcessesService(runner, signatures, Environment.ProcessId, uid);
         var startup = new StartupService(startupFolders ?? StartupFolders.For(AppPaths.Home), uid, runner, signatures, backups, admin, trash);
         var loginItems = new LoginItemsService(runner, backups);
+        var programs = new ProgramsService(new AppCatalog(appFolders ?? AppFolders.For(AppPaths.Home), runner, signatures), trash, processes,
+            AppPaths.Home, fda);
 
         var pages = new PageViewModel[]
         {
@@ -34,11 +39,11 @@ public static class PageFactory
             {
                 new CleanerContributor(cleaner, info),
                 new ProcessesContributor(processes, startup, AppPaths.Home),
+                new ProgramsContributor(programs),
             }, info, settings, navigator),
             new CleanerViewModel(cleaner, new DiskService(runner), new SpaceAnalyzer(AppPaths.Home), trash, shell, fda, AppPaths.Home),
             new ProcessesViewModel(processes, startup, loginItems, shell),
-            new UpcomingPageViewModel("Programs", "Программы", "Установленные программы и их остатки", "Apps",
-                "Список программ, удаление вместе с остатками в ~/Library (всё уходит в Корзину) и нежелательные программы."),
+            new ProgramsViewModel(programs, shell, AppPaths.Home),
             new UpcomingPageViewModel("Security", "Безопасность и сеть", "Защита macOS и настройки сети", "Shield",
                 "Gatekeeper, SIP, FileVault, брандмауэр, обновления macOS, профили конфигурации, прокси, DNS и файл hosts."),
             new SettingsViewModel(shell, fda, new BackupRestorer(backups, AppPaths.Home, uid, runner, admin, loginItems)),

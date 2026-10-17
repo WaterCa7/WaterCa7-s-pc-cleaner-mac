@@ -40,7 +40,7 @@ public class MainViewModelTests
     [Fact]
     public void PageFactory_BuildsTheSidebar_AndTheDashboardCanNavigate()
     {
-        var main = PageFactory.CreateMain(new FakeCommandRunner(), new AppSettings(), Ui.WindowTests.EmptyStartup);
+        var main = PageFactory.CreateMain(new FakeCommandRunner(), new AppSettings(), Ui.WindowTests.EmptyStartup, Ui.WindowTests.EmptyApps);
         Assert.Equal(new[] { "Dashboard", "Cleaner", "Processes", "Programs", "Security", "Settings" }, main.Pages.Select(p => p.Key));
         Assert.Equal(new[] { "Главная", "Очистка и диски", "Процессы и автозагрузка", "Программы", "Безопасность и сеть", "Настройки" },
             main.Pages.Select(p => p.Title));

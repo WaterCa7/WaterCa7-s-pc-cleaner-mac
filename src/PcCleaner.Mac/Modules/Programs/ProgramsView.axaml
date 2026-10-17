@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PcCleaner.Modules.Programs"
+             x:Class="PcCleaner.Modules.Programs.ProgramsView"
+             x:DataType="vm:ProgramsViewModel">
+  <Grid RowDefinitions="Auto,Auto,*" Margin="0,4,8,8">
+
+    <Border Classes="Card">
+      <StackPanel Spacing="10">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Content="Обновить" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding SortChoices}" SelectedItem="{Binding Sort}" MinWidth="150" Margin="12,0,0,0" />
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding FilterChoices}" SelectedItem="{Binding Filter}" MinWidth="170" Margin="12,0,0,0" />
+          <TextBox Text="{Binding SearchText}" PlaceholderText="Поиск по названию" />
+        </DockPanel>
+        <DockPanel>
+          <CheckBox DockPanel.Dock="Right" Content="Показать встроенные программы macOS" IsChecked="{Binding ShowApple}" IsEnabled="{Binding !IsBusy}" />
+          <TextBlock Classes="Muted" Text="{Binding Summary}" VerticalAlignment="Center" TextWrapping="Wrap" />
+        </DockPanel>
+        <TextBlock Classes="Muted" Text="{Binding Problems}" IsVisible="{Binding HasProblems}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1" Padding="12,9" Margin="0,12,0,0" CornerRadius="8" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding HasLastResult}">
+      <DockPanel>
+        <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Margin="0,1,10,0" VerticalAlignment="Top"
+                  Data="{StaticResource Icon.Checkmark}" Foreground="{StaticResource AccentBrush}" />
+        <TextBlock Text="{Binding LastResult}" TextWrapping="Wrap" />
+      </DockPanel>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,380" Margin="0,12,0,0">
+      <Border Classes="Card" Padding="6">
+        <Grid RowDefinitions="Auto,*">
+          <Grid ColumnDefinitions="22,*,92,96" Margin="10,4,24,6">
+            <TextBlock Grid.Column="1" Classes="Muted" Text="Программа" />
+            <TextBlock Grid.Column="2" Classes="Muted" Text="Размер" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="3" Classes="Muted" Text="Запуск" HorizontalAlignment="Right" />
+          </Grid>
+          <ListBox Grid.Row="1" Classes="Plain" ItemsSource="{Binding Apps}" SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:AppRow">
+                <Grid ColumnDefinitions="22,*,92,96" Margin="0,0,14,0">
+                  <Panel Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource Icon.Warning}" Foreground="{StaticResource WarningBrush}" IsVisible="{Binding IsPup}" />
+                  </Panel>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="Muted" Text="{Binding SubText}" FontSize="11.5" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Classes="Muted" Text="{Binding LastUsedText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="1" Classes="Card" Margin="12,0,0,0" VerticalAlignment="Stretch">
+        <Panel>
+          <TextBlock Classes="Muted" TextWrapping="Wrap" IsVisible="{Binding NoSelection}"
+                     Text="Выберите программу, чтобы увидеть подробности и то, что она оставила в ~/Library." />
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding HasSelection}">
+            <StackPanel Spacing="8" Margin="0,0,6,0">
+              <TextBlock Classes="H3" Text="{Binding Selected.Name}" TextWrapping="Wrap" />
+              <TextBlock Classes="Muted" Text="{Binding Selected.DetailsText}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Selected.PathText}" FontSize="12" TextWrapping="Wrap" />
+              <TextBlock Classes="Muted" Text="{Binding Selected.SourceText}" TextWrapping="Wrap" />
+              <TextBlock Classes="Muted" Text="{Binding Selected.ArchitectureText}" TextWrapping="Wrap" />
+              <TextBlock Classes="Muted" Text="{Binding Selected.UsageText}" TextWrapping="Wrap" />
+              <DockPanel IsVisible="{Binding Selected.IsPup}">
+                <PathIcon DockPanel.Dock="Left" Width="14" Height="14" Margin="0,2,6,0" VerticalAlignment="Top"
+                          Data="{StaticResource Icon.Warning}" Foreground="{StaticResource WarningBrush}" />
+                <TextBlock Text="{Binding Selected.App.PupReason}" TextWrapping="Wrap" FontSize="12.5" />
+              </DockPanel>
+              <TextBlock Classes="Muted" Text="{Binding Selected.UninstallerText}" IsVisible="{Binding Selected.HasUninstaller}" TextWrapping="Wrap" />
+              <TextBlock Classes="Muted" Text="{Binding Selected.ProtectedText}" IsVisible="{Binding !Selected.CanUninstall}" TextWrapping="Wrap" />
+
+              <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button Classes="DangerButton" Content="Удалить…" Command="{Binding UninstallCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.CanUninstall}" />
+                <Button Content="Показать в Finder" Command="{Binding RevealCommand}" Margin="0,0,8,8" />
+                <Button Content="Найти в интернете" Command="{Binding SearchWebCommand}" Margin="0,0,8,8" />
+              </WrapPanel>
+
+              <TextBlock Text="{Binding LeftoversText}" TextWrapping="Wrap" FontSize="12.5" Margin="0,4,0,0" />
+              <ItemsControl ItemsSource="{Binding Leftovers}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LeftoverRow">
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2">
+                      <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Top" Margin="0,-4,2,0" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding What}" FontSize="12.5" />
+                        <TextBlock Classes="Muted" Text="{Binding PathText}" FontSize="11.5" TextWrapping="Wrap" />
+                        <TextBlock Classes="Muted" Text="{Binding Note}" FontSize="11.5" TextWrapping="Wrap" IsVisible="{Binding HasNote}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding SizeText}" FontSize="12" Margin="8,0,0,0" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <StackPanel Spacing="6" IsVisible="{Binding LeftoversNeedFda}">
+                <TextBlock Classes="Muted" FontSize="12" TextWrapping="Wrap"
+                           Text="Контейнер программы (~/Library/Containers) проверяется только с полным доступом к диску — иначе macOS спросит доступ к данным других программ." />
+                <Button Content="Открыть настройки" Command="{Binding OpenFdaSettingsCommand}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </Panel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

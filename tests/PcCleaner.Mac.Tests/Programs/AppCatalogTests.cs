@@ -34,7 +34,7 @@ internal sealed class FakeApps : IDisposable
     /// <summary>Creates root/relative (e.g. "Vendor/Tool.app") with the plist and the executable it names.</summary>
     public string App(string root, string relative, string? plist, byte[]? executable = null, bool appStore = false)
     {
-        var bundle = Path.Combine(root, relative);
+        var bundle = Path.GetFullPath(Path.Combine(root, relative));
         Directory.CreateDirectory(Path.Combine(bundle, "Contents", "MacOS"));
         if (plist is not null)
         {

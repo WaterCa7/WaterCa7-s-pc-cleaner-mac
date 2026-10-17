@@ -38,7 +38,7 @@ public sealed class ProgramsService
     {
         var list = await _processes.ListAsync(ct);
         var prefix = app.Path.TrimEnd('/') + "/";
-        return list.Items.Where(e => e.Info.Uid == _processes.OwnUid && e.Info.HasPath && e.Info.Executable.StartsWith(prefix, StringComparison.Ordinal))
+        return list.Items.Where(e => e.Info.Uid == _processes.OwnUid && e.Info.Executable.StartsWith(prefix, StringComparison.Ordinal))
             .ToList();
     }
 
