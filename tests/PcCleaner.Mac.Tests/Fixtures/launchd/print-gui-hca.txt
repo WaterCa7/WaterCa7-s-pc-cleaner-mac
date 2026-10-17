@@ -1,0 +1,73 @@
+gui/501/testuser-provisioner = {
+	active count = 1
+	path = /Users/testuser/Library/LaunchAgents/hca.plist
+	type = LaunchAgent
+	state = running
+
+	program = /opt/hca/start_hca.sh
+	arguments = {
+		/opt/hca/start_hca.sh
+	}
+
+	stdout path = /Users/testuser/Library/Logs/hca.log
+	stderr path = /Users/testuser/Library/Logs/hca.log
+	inherited environment = {
+		SSH_AUTH_SOCK => /var/run/com.apple.launchd.eRI0GJnCJB/Listeners
+	}
+
+	default environment = {
+		PATH => /usr/bin:/bin:/usr/sbin:/sbin
+	}
+
+	environment = {
+		OSLogRateLimit => 64
+		LANG => en_US.UTF-8
+		ENABLE_RUNNER_TRACING => true
+		XPC_SERVICE_NAME => testuser-provisioner
+	}
+
+	domain = gui/501 [100002]
+	asid = 100002
+	minimum runtime = 15
+	exit timeout = 5
+	nice = -10
+	runs = 1
+	pid = 945
+	immediate reason = speculative
+	forks = 2
+	execs = 1
+	initialized = 1
+	trampolined = 1
+	started suspended = 0
+	proxy started suspended = 0
+	checked allocations = 0 (queried = 1)
+	checked allocations reason = no host
+	checked allocations flags = 0x0
+	last exit code = (never exited)
+
+	resource coalition = {
+		ID = 845
+		type = resource
+		state = active
+		active count = 1
+		name = testuser-provisioner
+	}
+
+	jetsam coalition = {
+		ID = 846
+		type = jetsam
+		state = active
+		active count = 1
+		name = testuser-provisioner
+	}
+
+	spawn type = daemon (3)
+	jetsam priority = 40
+	jetsam memory limit (active) = (unlimited)
+	jetsam memory limit (inactive) = (unlimited)
+	jetsamproperties category = daemon
+	jetsam thread limit = 32
+	cpumon = default
+
+	properties = runatload | inferred program | system service | tle system
+}

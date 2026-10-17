@@ -49,7 +49,7 @@ public sealed class ProcessesService
         _ownPid = ownPid;
         OwnUid = ownUid;
         _missing = missing ?? FileMissing;
-        _exitWait = exitWait ?? TimeSpan.FromSeconds(3);
+        _exitWait = exitWait ?? TimeSpan.FromSeconds(5);
     }
 
     public int OwnUid { get; }

@@ -70,6 +70,8 @@ public class ProcessRulesTests
         Assert.Empty(ProcessRules.Hints("/Applications/Tool.app/Contents/MacOS/Tool", Unsigned));
         Assert.Equal(new[] { new Hint("без подписи разработчика", false) }, ProcessRules.Hints("/opt/homebrew/Cellar/redis/7.2/bin/redis-server", AdHoc));
         Assert.Empty(ProcessRules.Hints("/usr/libexec/odd", Unsigned));
+        Assert.Contains(ProcessRules.Hints("/Users/anna/Library/Application Support/Sync/agent", DeveloperId), h => h is { Strong: false } && h.Text.Contains("Application Support", StringComparison.Ordinal));
+        Assert.Empty(ProcessRules.Hints("/Users/anna/Library/Application Support/Sync/Sync Helper.app/Contents/MacOS/Sync Helper", DeveloperId));
         Assert.Empty(ProcessRules.Hints("dotnet", null));
     }
 

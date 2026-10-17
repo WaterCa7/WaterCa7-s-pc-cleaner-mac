@@ -1,0 +1,55 @@
+system/com.veertu.anka.addons.ankaupd = {
+	active count = 0
+	path = /Library/LaunchDaemons/com.veertu.anka.addons.ankaupd.plist
+	type = LaunchDaemon
+	state = not running
+
+	program = /Library/Application Support/Veertu/Anka/addons/ankaupd.sh
+	arguments = {
+		/Library/Application Support/Veertu/Anka/addons/ankaupd.sh
+	}
+
+	stdout path = /var/log/anka.log
+	stderr path = /var/log/anka.log
+	default environment = {
+		PATH => /usr/bin:/bin:/usr/sbin:/sbin
+	}
+
+	environment = {
+		OSLogRateLimit => 64
+		XPC_SERVICE_NAME => com.veertu.anka.addons.ankaupd
+	}
+
+	domain = system
+	minimum runtime = 10
+	exit timeout = 5
+	runs = 4
+	last exit code = 0
+
+	resource coalition = {
+		ID = 287
+		type = resource
+		state = active
+		active count = 1
+		name = com.veertu.anka.addons.ankaupd
+	}
+
+	jetsam coalition = {
+		ID = 288
+		type = jetsam
+		state = active
+		active count = 1
+		name = com.veertu.anka.addons.ankaupd
+	}
+
+	spawn type = daemon (3)
+	jetsam priority = 40
+	jetsam memory limit (active) = (unlimited)
+	jetsam memory limit (inactive) = (unlimited)
+	jetsamproperties category = daemon
+	jetsam thread limit = 32
+	cpumon = default
+	run interval = 60 seconds
+
+	properties = runatload | inferred program | system service | managed LWCR | tle system
+}

@@ -61,6 +61,9 @@ public static class ProcessRules
             hints.Add(new Hint("запущена из временной папки", !known));
         if (path.StartsWith("/Users/Shared/", StringComparison.Ordinal))
             hints.Add(new Hint("запущена из общей папки /Users/Shared", !known));
+        if (path.StartsWith("/Users/", StringComparison.Ordinal) && path.Contains("/Library/Application Support/", StringComparison.Ordinal)
+            && !path.Contains(".app/", StringComparison.Ordinal))
+            hints.Add(new Hint("лежит в папке данных программ (Application Support), а не в «Программах»", false));
         if (HiddenFolder(path) is { } hidden)
             hints.Add(hidden == ".Trash" ? new Hint("лежит в Корзине", false) : new Hint($"лежит в скрытой папке «{hidden}»", !known));
         if (signature?.Kind is SignatureKind.Unsigned or SignatureKind.AdHoc && !path.StartsWith("/Applications/", StringComparison.Ordinal))

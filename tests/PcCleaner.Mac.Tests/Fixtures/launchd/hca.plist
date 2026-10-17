@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>ENABLE_RUNNER_TRACING</key>
+		<string>true</string>
+		<key>LANG</key>
+		<string>en_US.UTF-8</string>
+	</dict>
+	<key>KeepAlive</key>
+	<false/>
+	<key>Label</key>
+	<string>testuser-provisioner</string>
+	<key>Nice</key>
+	<integer>-10</integer>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/hca/start_hca.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/testuser/Library/Logs/hca.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/testuser/Library/Logs/hca.log</string>
+	<key>ThrottleInterval</key>
+	<integer>15</integer>
+	<key>UserName</key>
+	<string>testuser</string>
+</dict>
+</plist>
