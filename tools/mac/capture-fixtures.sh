@@ -63,9 +63,15 @@ run df-data /bin/df -k -P /System/Volumes/Data
 run df-root /bin/df -k -P /
 run computername /usr/sbin/scutil --get ComputerName
 
-# Stage 2: disks.
+# Stage 2: disks and cleaning (listings only, nothing is read inside the files).
 run diskutil-root /usr/sbin/diskutil info -plist /
 run tmutil-snapshots /usr/bin/tmutil listlocalsnapshots /
+run df-all /bin/df -k -P
+run ps-user /bin/ps -xww -o comm=
+run ls-caches /bin/ls -la "$HOME/Library/Caches"
+run ls-logs /bin/ls -la "$HOME/Library/Logs"
+run ls-trash /bin/ls -la "$HOME/.Trash"
+run du-caches /usr/bin/du -sk "$HOME/Library/Caches" "$HOME/Library/Logs"
 
 # Stage 3: processes, startup, signatures.
 run ps-comm /bin/ps -axww -o pid=,ppid=,uid=,pcpu=,rss=,etime=,comm=

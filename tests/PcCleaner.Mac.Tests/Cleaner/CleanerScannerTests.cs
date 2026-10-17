@@ -24,6 +24,17 @@ public sealed class FakeHome : IDisposable
 
     public string Old(string relative, int bytes = 100) => Add(relative, bytes, TimeSpan.FromDays(30));
 
+    /// <summary>A big file without writing its bytes (sparse where the file system supports it).</summary>
+    public string AddSized(string relative, long bytes, TimeSpan age)
+    {
+        var file = System.IO.Path.Combine(Path, relative);
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(file)!);
+        using (var stream = new FileStream(file, FileMode.Create, FileAccess.Write))
+            stream.SetLength(bytes);
+        File.SetLastWriteTimeUtc(file, Now - age);
+        return file;
+    }
+
     public void Dispose() => _dir.Dispose();
 }
 

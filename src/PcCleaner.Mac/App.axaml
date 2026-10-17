@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cleaner="using:PcCleaner.Modules.Cleaner"
              xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
              xmlns:settings="using:PcCleaner.Modules.Settings"
              xmlns:shell="using:PcCleaner.Shell"
@@ -29,6 +30,9 @@
   <Application.DataTemplates>
     <DataTemplate DataType="dashboard:DashboardViewModel">
       <dashboard:DashboardView />
+    </DataTemplate>
+    <DataTemplate DataType="cleaner:CleanerViewModel">
+      <cleaner:CleanerView />
     </DataTemplate>
     <DataTemplate DataType="settings:SettingsViewModel">
       <settings:SettingsView />

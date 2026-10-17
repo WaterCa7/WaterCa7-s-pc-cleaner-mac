@@ -7,6 +7,7 @@ public sealed class CategoryItem : ObservableObject
 {
     private readonly Action _selectionChanged;
     private bool _isChecked;
+    private bool _showDetails;
     private CategoryScan? _scan;
 
     public CategoryItem(CleanerCategory category, bool isChecked, Action selectionChanged)
@@ -14,7 +15,22 @@ public sealed class CategoryItem : ObservableObject
         Category = category;
         _isChecked = isChecked;
         _selectionChanged = selectionChanged;
+        ToggleDetailsCommand = new RelayCommand(() => ShowDetails = !ShowDetails);
     }
+
+    public bool ShowDetails
+    {
+        get => _showDetails;
+        set
+        {
+            if (Set(ref _showDetails, value))
+                OnPropertyChanged(nameof(DetailsButtonText));
+        }
+    }
+
+    public string DetailsButtonText => ShowDetails ? "Скрыть подробности" : "Подробности";
+
+    public RelayCommand ToggleDetailsCommand { get; }
 
     public CleanerCategory Category { get; }
 

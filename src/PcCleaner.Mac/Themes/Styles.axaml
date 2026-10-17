@@ -166,6 +166,13 @@
     <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
   </Style>
 
+  <!-- ===== Tabs (the Fluent headers are display-sized) ===== -->
+  <Style Selector="TabItem">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Padding" Value="2,6,18,6" />
+  </Style>
+
   <!-- ===== Plain lists (log, info rows) ===== -->
   <Style Selector="ListBox.Plain">
     <Setter Property="Background" Value="Transparent" />

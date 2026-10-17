@@ -27,7 +27,7 @@ public sealed class CleanerViewModel : PageViewModel
     private readonly Func<FdaState> _fda;
     private readonly Func<DateTime> _nowUtc;
     private readonly string _home;
-    private bool _loaded;
+    private Task? _loading;
     private bool _hasScan;
     private string? _lastResult;
     private string _snapshotsText = "";
@@ -164,13 +164,8 @@ public sealed class CleanerViewModel : PageViewModel
 
     // ===== Navigation
 
-    public override async Task OnNavigatedToAsync()
-    {
-        if (_loaded)
-            return;
-        _loaded = true;
-        await RunBusyAsync("Проверяем, что можно очистить…", RefreshAsync);
-    }
+    /// <summary>The first visit checks the categories and the disks once; later visits (and callers) wait for that check.</summary>
+    public override Task OnNavigatedToAsync() => _loading ??= RunBusyAsync("Проверяем, что можно очистить…", RefreshAsync);
 
     /// <summary>The categories and the volumes (read-only; the user's folders are not walked).</summary>
     public override Task PreviewScanAsync(CancellationToken ct) => RefreshAsync(ct);
