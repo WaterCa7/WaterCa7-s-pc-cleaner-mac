@@ -109,7 +109,7 @@ public class LeftoverFinderTests
         var outside = dir.File("outside/secret.txt", "secret");
         Directory.CreateSymbolicLink(Path.Combine(home, "Library", "Caches", "com.vendor.linked"), Path.GetDirectoryName(outside)!);
         File.CreateSymbolicLink(Path.Combine(home, "Library", "Preferences", "com.vendor.linked.plist"), outside);
-        var linked = App("/Applications/Linked.app", "Linked", "com.vendor.linked");
+        var linked = App("/Applications/Linked.app", "Linked", "com.vendor.linked", team: null);
         Assert.Empty(LeftoverFinder.Find(linked, home, new[] { linked }, true).Items);
     }
 }
