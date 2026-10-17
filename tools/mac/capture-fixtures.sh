@@ -29,7 +29,7 @@ scrub() {
     s/\b([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b/00:00:00:00:00:00/g;
     s/("serial_number"\s*:\s*")[^"]*/${1}XXXXXXXXXX/g;
     s/("(?:platform_UUID|provisioning_UDID)"\s*:\s*")[^"]*/${1}00000000/g;
-    s/[A-Za-z0-9+=_-]{40,}/<hidden>/g;
+    s/[A-Za-z0-9+=_-]{40,}/HIDDEN/g;
   ' "$1"
 }
 
