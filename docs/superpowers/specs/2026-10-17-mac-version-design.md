@@ -299,7 +299,10 @@ plist на место + `launchctl enable/bootstrap`, прежние прокс�
 
 ## Упаковка и подпись
 
-- `dotnet publish src/PcCleaner.Mac -c Release -r osx-arm64 --self-contained` (.NET внутри программы).
+- `dotnet publish src/PcCleaner.Mac -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true` (.NET внутри
+  программы). Одним файлом — потому что `codesign` считает кодом каждый файл в `Contents/MacOS` и не подписывает
+  сборки .NET (`.dll`) там; в single-file они внутри исполняемого файла, рядом остаются только `.dylib` Avalonia,
+  Skia и HarfBuzz (Mach-O). `make-app.sh` проверяет, что в папке публикации только Mach-O.
 - `tools/mac/make-app.sh` собирает `WaterCa7s PC Cleaner.app`: исполняемый файл `Contents/MacOS/WaterCa7sPcCleaner`,
   Info.plist — `CFBundleIdentifier` `io.github.waterca7.pccleaner`, версия, `LSMinimumSystemVersion` 14.0,
   `CFBundleDevelopmentRegion` ru, `LSApplicationCategoryType` utilities, `NSAppleEventsUsageDescription` (по-русски:
