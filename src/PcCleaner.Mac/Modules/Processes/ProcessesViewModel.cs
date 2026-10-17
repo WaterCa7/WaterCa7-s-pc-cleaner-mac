@@ -279,11 +279,15 @@ public sealed class ProcessesViewModel : PageViewModel
             Log.Info($"Завершение «{row.Name}» отменено — ничего не изменено");
             return;
         }
-        var result = await _processes.TerminateAsync(row.Entry, force: false, CancellationToken.None);
+        // Waiting for the process to end takes a few seconds: show it as busy work (it can be cancelled).
+        TerminateResult? result = null;
+        await RunBusyAsync($"Завершаем «{row.Name}»…", async ct => result = await _processes.TerminateAsync(row.Entry, force: false, ct));
+        if (result is null)
+            return;
         if (result.StillRunning && !result.Ok &&
             await Dialogs.ConfirmAsync("Завершить принудительно", $"{result.Message}\n\nЗавершить «{row.Name}» принудительно? Несохранённое пропадёт."))
         {
-            result = await _processes.TerminateAsync(row.Entry, force: true, CancellationToken.None);
+            await RunBusyAsync($"Завершаем «{row.Name}» принудительно…", async ct => result = await _processes.TerminateAsync(row.Entry, force: true, ct));
         }
         LastResult = result.Message;
         await RunBusyAsync("Обновляем список процессов…", LoadProcessesAsync);
