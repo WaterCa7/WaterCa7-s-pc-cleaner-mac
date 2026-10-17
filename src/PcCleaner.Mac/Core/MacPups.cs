@@ -3,7 +3,8 @@ namespace PcCleaner.Core;
 /// <summary>
 /// Potentially unwanted programs for the Mac: scareware "optimizers", search hijackers, adware installers. These are not
 /// viruses; the app only suggests the user review them. Matching ignores case, spaces and punctuation, so
-/// "Search Marquis", "SearchMarquis" and "com.searchmarquis.agent" all match.
+/// "Search Marquis", "SearchMarquis" and "com.searchmarquis.agent" all match. A name too common to match on its own (VSearch)
+/// is matched by its bundle id only.
 /// </summary>
 public static class MacPups
 {
@@ -28,6 +29,9 @@ public static class MacPups
         new("Pirrit", "Pirrit — рекламная программа"),
         new("MyShopcoupon", "MyShopcoupon — рекламная программа"),
         new("WeKnow", "WeKnow — угонщик поиска в браузере"),
+        new("com.vsearch", "VSearch — рекламная программа, меняет поиск в браузере"),
+        new("MacReviver", "MacReviver — «оптимизатор» с запугиванием и платными исправлениями"),
+        new("Mac Mechanic", "Mac Mechanic — «оптимизатор» с запугиванием"),
     };
 
     private static readonly (string Key, string Reason)[] Normalized = Items.Select(p => (Normalize(p.Pattern), p.Reason)).ToArray();

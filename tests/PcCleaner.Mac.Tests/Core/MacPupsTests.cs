@@ -11,6 +11,8 @@ public class MacPupsTests
     [InlineData("/Applications/SearchMarquis.app")]
     [InlineData("com.zeobit.MacKeeper.AntiVirus")]
     [InlineData("Advanced Mac Cleaner")]
+    [InlineData("com.vsearch.agent")]
+    [InlineData("Mac Mechanic")]
     public void Known(string name) => Assert.NotNull(MacPups.Match(name));
 
     [Fact]
@@ -19,5 +21,6 @@ public class MacPupsTests
         Assert.Null(MacPups.Match("Telegram", null, "", "/Applications/Telegram.app", "ru.keepcoder.Telegram"));
         Assert.Null(MacPups.Match("WaterCa7s PC Cleaner", "io.github.waterca7.pccleaner"));
         Assert.Null(MacPups.Match("/Users/anna/dev/advsearch/tool"));
+        Assert.Null(MacPups.Match("VSearch", "/Applications/DevSearch.app"));
     }
 }
