@@ -41,19 +41,3 @@ public static class DiskSpaceRules
         return null;
     }
 }
-
-/// <summary>The dashboard check of free disk space (the cleaning section adds its own checks in stage 2).</summary>
-public sealed class DiskSpaceContributor : IHealthContributor
-{
-    private readonly MacInfoService _info;
-
-    public DiskSpaceContributor(MacInfoService info) => _info = info;
-
-    public string ModuleName => DiskSpaceRules.ModuleName;
-
-    public async Task<IReadOnlyList<HealthIssue>> AnalyzeAsync(CancellationToken ct)
-    {
-        var disk = await _info.DiskAsync(ct) ?? throw new InvalidOperationException("не удалось узнать свободное место на диске");
-        return DiskSpaceRules.Evaluate(disk) is { } issue ? new[] { issue } : Array.Empty<HealthIssue>();
-    }
-}

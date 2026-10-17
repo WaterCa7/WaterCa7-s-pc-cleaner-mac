@@ -1,4 +1,5 @@
 using PcCleaner.Core;
+using PcCleaner.Modules.Cleaner;
 using PcCleaner.Modules.Dashboard;
 using PcCleaner.Modules.Settings;
 
@@ -11,9 +12,10 @@ public static class PageFactory
     {
         var navigator = new DeferredNavigator();
         var info = new MacInfoService(runner);
+        var cleaner = new CleanerService(AppPaths.Home, runner, FileRemover.ForCurrentOs(), () => FullDiskAccess.Check(AppPaths.Home));
         var pages = new PageViewModel[]
         {
-            new DashboardViewModel(new IHealthContributor[] { new DiskSpaceContributor(info) }, info, settings, navigator),
+            new DashboardViewModel(new IHealthContributor[] { new CleanerContributor(cleaner, info) }, info, settings, navigator),
             new UpcomingPageViewModel("Cleaner", "Очистка и диски", "Кэши, журналы, Корзина и место на дисках", "Broom",
                 "Очистка кэшей программ и браузеров (пароли, история и cookies не трогаются), старых журналов, Корзины, " +
                 "кэшей Xcode и Homebrew; место на дисках, самые большие папки и файлы."),
