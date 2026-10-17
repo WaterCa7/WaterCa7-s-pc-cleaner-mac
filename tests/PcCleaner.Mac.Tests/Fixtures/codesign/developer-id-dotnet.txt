@@ -1,0 +1,14 @@
+Executable=/Users/testuser/.dotnet/dotnet
+Identifier=com.microsoft.dotnet-host
+Format=Mach-O thin (arm64)
+CodeDirectory v=20500 size=1211 flags=0x10000(runtime) hashes=26+7 location=embedded
+Signature size=9012
+Authority=Developer ID Application: Microsoft Corporation (UBF8T346G9)
+Authority=Developer ID Certification Authority
+Authority=Apple Root CA
+Timestamp=Jan 25, 2026 at 6:12:07 PM
+Info.plist=not bound
+TeamIdentifier=UBF8T346G9
+Runtime Version=15.5.0
+Sealed Resources=none
+Internal requirements count=1 size=208

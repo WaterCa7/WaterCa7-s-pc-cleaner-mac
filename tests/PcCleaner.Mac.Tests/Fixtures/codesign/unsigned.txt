@@ -1,0 +1,1 @@
+/opt/tools/helper: code object is not signed at all

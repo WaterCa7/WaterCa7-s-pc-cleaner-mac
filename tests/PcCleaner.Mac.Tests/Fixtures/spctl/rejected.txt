@@ -1,0 +1,2 @@
+out/WaterCa7s PC Cleaner.app: rejected
+origin=WaterCa7s PC Cleaner Signing

@@ -1,0 +1,2 @@
+/Applications/Broken.app: invalid signature (code or signature have been modified)
+In architecture: arm64

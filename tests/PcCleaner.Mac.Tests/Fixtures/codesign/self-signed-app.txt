@@ -1,0 +1,11 @@
+Executable=/Users/testuser/work/WaterCa7-s-pc-cleaner-mac/WaterCa7-s-pc-cleaner-mac/out/WaterCa7s PC Cleaner.app/Contents/MacOS/WaterCa7sPcCleaner
+Identifier=io.github.waterca7.pccleaner
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20400 size=178069 flags=0x0(none) hashes=5558+3 location=embedded
+Signature size=1780
+Authority=WaterCa7s PC Cleaner Signing
+Signed Time=Oct 17, 2026 at 7:23:20 PM
+Info.plist entries=16
+TeamIdentifier=not set
+Sealed Resources version=2 rules=13 files=4
+Internal requirements count=1 size=104
