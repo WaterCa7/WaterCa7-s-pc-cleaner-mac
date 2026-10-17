@@ -87,7 +87,7 @@
       <ItemsControl ItemsSource="{Binding Groups}" IsVisible="{Binding HasGroups}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:IssueGroupItem">
-            <StackPanel Spacing="8" Margin="0,0,0,14">
+            <StackPanel Spacing="8" Margin="0,0,0,6">
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Classes="H3" Text="{Binding Title}"
                            Foreground="{Binding BrushKey, Converter={x:Static shell:BrushKeyConverter.Instance}}" />

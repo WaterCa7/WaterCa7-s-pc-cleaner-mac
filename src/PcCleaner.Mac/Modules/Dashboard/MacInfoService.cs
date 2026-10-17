@@ -47,7 +47,8 @@ public sealed class MacInfoService
         var result = await _runner.RunAsync(exe, args, timeout, ct);
         if (result.Ok)
             return result.StdOut;
-        Log.Info($"Сведения о Mac: {exe} {string.Join(' ', args)} — {(result.TimedOut ? "не ответил вовремя" : $"код {result.ExitCode}")}");
+        var command = args.Length == 0 ? exe : $"{exe} {string.Join(' ', args)}";
+        Log.Info($"Сведения о Mac: {command} — {(result.TimedOut ? "не ответил вовремя" : $"код {result.ExitCode}")}");
         return null;
     }
 }

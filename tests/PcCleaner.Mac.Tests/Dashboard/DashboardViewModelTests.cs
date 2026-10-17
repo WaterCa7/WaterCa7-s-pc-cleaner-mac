@@ -65,6 +65,8 @@ public class DashboardViewModelTests
         var vm = Create(new FakeContributor("Очистка и диски"));
         await vm.ScanAsync(CancellationToken.None);
         Assert.DoesNotContain("омпьютер", vm.Verdict + vm.VerdictDescription);
+        foreach (var severity in Enum.GetValues<IssueSeverity>())
+            Assert.DoesNotContain("омпьютер", new IssueGroupItem(severity, Array.Empty<IssueItem>()).Hint);
         Assert.Contains("Mac", vm.VerdictDescription);
     }
 

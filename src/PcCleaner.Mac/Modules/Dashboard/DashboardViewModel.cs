@@ -227,8 +227,9 @@ public sealed class DashboardViewModel : PageViewModel
         });
         if (!ct.IsCancellationRequested)
         {
-            Log.Info($"Главная: проверка завершена — оценка {Score}, " +
-                     (issues.Count == 0 ? "проблем не найдено" : "найдено " + FindingsText));
+            Log.Info($"Главная: проверка завершена — оценка {Score}" +
+                     (failed.Count > 0 ? $" (неполная: не проверено {Format.Count(failed.Count, "раздел", "раздела", "разделов")})" : "") +
+                     ", " + (issues.Count == 0 ? "проблем не найдено" : "найдено " + FindingsText));
         }
     }
 

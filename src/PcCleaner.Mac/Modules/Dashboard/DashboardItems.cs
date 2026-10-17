@@ -62,7 +62,8 @@ public sealed record IssueGroupItem(IssueSeverity Severity, IReadOnlyList<IssueI
 {
     public string Title => HealthScoring.GroupTitle(Severity);
 
-    public string Hint => HealthScoring.GroupHint(Severity);
+    /// <summary>The shared hints speak of "компьютер"; on a Mac it is "Mac".</summary>
+    public string Hint => HealthScoring.GroupHint(Severity).Replace("компьютера", "Mac");
 
     public string BrushKey => Dashboard.Severity.BrushKey(Severity);
 }
