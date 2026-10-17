@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cleaner="using:PcCleaner.Modules.Cleaner"
              xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
+             xmlns:processes="using:PcCleaner.Modules.Processes"
              xmlns:settings="using:PcCleaner.Modules.Settings"
              xmlns:shell="using:PcCleaner.Shell"
              x:Class="PcCleaner.App"
@@ -33,6 +34,9 @@
     </DataTemplate>
     <DataTemplate DataType="cleaner:CleanerViewModel">
       <cleaner:CleanerView />
+    </DataTemplate>
+    <DataTemplate DataType="processes:ProcessesViewModel">
+      <processes:ProcessesView />
     </DataTemplate>
     <DataTemplate DataType="settings:SettingsViewModel">
       <settings:SettingsView />

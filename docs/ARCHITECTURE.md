@@ -27,13 +27,13 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 | Key        | Раздел                  | Этап | Проверка для «Главной» (IHealthContributor) |
 |------------|-------------------------|------|---------------------------------------------|
 | Dashboard  | Главная                 | 1    | — (собирает все остальные)                  |
-| Cleaner    | Очистка и диски         | 2    | DiskSpaceContributor (с этапа 1)            |
-| Processes  | Процессы и автозагрузка | 3    |                                             |
+| Cleaner    | Очистка и диски         | 2    | CleanerContributor                          |
+| Processes  | Процессы и автозагрузка | 3    | ProcessesContributor                        |
 | Programs   | Программы               | 4    |                                             |
 | Security   | Безопасность и сеть     | 5    |                                             |
 | Settings   | Настройки               | 1    | —                                           |
 
-Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings)`; разделы, которых ещё нет, —
+Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?)`; разделы, которых ещё нет, —
 `UpcomingPageViewModel`. Новый раздел: сервис + `PageViewModel` + `UserControl` с `x:DataType`, шаблон в
 `App.axaml` (`Application.DataTemplates`), строка в `PageFactory`.
 
@@ -60,6 +60,29 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 - `MacShell.OpenAsync(адрес)` / `RevealAsync(путь)` — `open` и «Показать в Finder».
 - `FullDiskAccess.Check(home)` → `Granted/Denied/Unknown`; `SystemSettingsLinks` — адреса панелей настроек.
 - `Ui.Post/Invoke/InvokeAsync` — в UI-потоке (без приложения — сразу).
+- `CodeSignatureService.GetAsync(path, ct, verify)` → `SignatureInfo(Kind, Authority, TeamId, Identifier)` (Apple, App
+  Store, Developer ID, ad-hoc, без подписи, повреждена); `AssessAsync` — вердикт Gatekeeper. «Повреждена» — только
+  когда codesign прямо говорит, что файлы изменены (таймаут или нет доступа — не повреждение).
+- `AdminPrompt.RunAsync(reason, commands, ct)` — окно пароля macOS; скрипт AppleScript постоянный, команды и их
+  аргументы передаются ему как данные (`quoted form of`), отмена — `Cancelled`.
+- `BackupStore.SavePlist/SaveLoginItem/List/Remove` — копии перед изменениями автозагрузки
+  (`Backups/<id>/` + `index.json`); не удалось сохранить — исключение, и изменение не делается.
+- `MacPups.Match(names…)` — известные нежелательные программы для Mac (используется и в «Программах»).
+- `WebLinks.Search/VirusTotal` — страницы, которые открываются по кнопке (VirusTotal — по SHA-256, файл не отправляется).
+
+## Процессы и автозагрузка
+
+- `ProcessesService`: `ps` (comm и args отдельно, объединение по PID), подписи — один раз на программу (.app),
+  без полной проверки файлов; `ProcessRules` — системные пути, кого нельзя завершать, подсказки (`Hint(Text, Strong)`).
+  Завершение — сначала проверка, что PID всё ещё та же программа, затем `kill -TERM`, после «Да» — `-KILL`.
+- `StartupService`: plist из `~/Library/LaunchAgents`, `/Library/LaunchAgents`, `/Library/LaunchDaemons` (и macOS — по
+  флажку, только просмотр) + службы, зарегистрированные программами (`launchctl list` → `print`). Состояние —
+  `launchctl list` / `print`, отключённые — `print-disabled`. Для скриптов (`sh -c`, python, osascript) проверяется
+  файл, который они запускают. Действия: `disable`(+`bootout`), `enable`(+`bootstrap`), удаление своих — в Корзину;
+  демоны — через `AdminPrompt`; всё — после копии в `BackupStore`.
+- `LoginItemsService` — объекты входа через System Events (только по кнопке; имена и пути — аргументы скрипта).
+- `BackupRestorer` — «Восстановить» в «Настройках»: отменяет изменение (включает снова, возвращает plist, снова
+  добавляет объект входа).
 
 ## Тема
 

@@ -61,7 +61,7 @@ public sealed record LaunchEntry(
 
     public bool IsRunning => State?.Running == true;
 
-    public string CommandLine => Arguments.Count > 0 ? string.Join(' ', Arguments.Select(Quote)) : Program ?? "";
+    public string CommandLine => Arguments.Count > 1 ? string.Join(' ', Arguments.Select(Quote)) : Program ?? Arguments.FirstOrDefault() ?? "";
 
     public string SourceText => Source switch
     {

@@ -64,7 +64,7 @@ public class CleanerPageTests
         using var home = FilledHome();
         await WithHome(home, async () =>
         {
-            var vm = PageFactory.CreateMain(Runner(), new AppSettings());
+            var vm = PageFactory.CreateMain(Runner(), new AppSettings(), WindowTests.EmptyStartup);
             using var shown = new WindowTests.ShownWindow(vm);
             var window = shown.Window;
             vm.NavigateTo("Cleaner");
@@ -99,7 +99,7 @@ public class CleanerPageTests
         using var home = FilledHome();
         await WithHome(home, async () =>
         {
-            var vm = PageFactory.CreateMain(Runner(), new AppSettings());
+            var vm = PageFactory.CreateMain(Runner(), new AppSettings(), WindowTests.EmptyStartup);
             using var shown = new WindowTests.ShownWindow(vm);
             var dashboard = (PcCleaner.Modules.Dashboard.DashboardViewModel)vm.Pages[0];
             await dashboard.OnNavigatedToAsync();

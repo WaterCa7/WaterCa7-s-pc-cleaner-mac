@@ -69,7 +69,7 @@ public class StartupServiceTests
         }
         """;
 
-    private static FakeCommandRunner Runner()
+    internal static FakeCommandRunner Runner()
     {
         var fake = new FakeCommandRunner()
             .On("/bin/launchctl", new[] { "list" }, new CommandResult(0, Fixture.Text("launchd/list.txt") + "512\t0\tcom.example.bundled\n-\t78\tcom.example.broken\n", ""))

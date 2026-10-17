@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using PcCleaner.Core;
 using PcCleaner.Mac.Tests.Dashboard;
 using PcCleaner.Mac.Tests.Support;
+using PcCleaner.Modules.Startup;
 using PcCleaner.Shell;
 using Xunit;
 
@@ -15,7 +16,16 @@ namespace PcCleaner.Mac.Tests.Ui;
 public class WindowTests
 {
     /// <summary>The real pages on a fake Mac (fixture output): what the screenshots show.</summary>
-    internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings());
+    /// <summary>Empty startup folders in the test root: the window tests never read the machine's own launchd plists.</summary>
+    internal static readonly StartupFolders EmptyStartup = MakeEmptyStartup();
+
+    internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings(), EmptyStartup);
+
+    private static StartupFolders MakeEmptyStartup()
+    {
+        string Dir(string name) => Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "startup", name)).FullName;
+        return new StartupFolders(Dir("user"), Dir("global"), Dir("daemons"), Dir("apple-agents"), Dir("apple-daemons"));
+    }
 
     /// <summary>Shows the main window; disposing closes it, so its bindings let go of the shared log and commands.</summary>
     internal sealed class ShownWindow(MainViewModel vm) : IDisposable
