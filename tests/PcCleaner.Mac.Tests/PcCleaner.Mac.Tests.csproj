@@ -8,6 +8,8 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <RootNamespace>PcCleaner.Mac.Tests</RootNamespace>
+    <!-- Tests are short; passing TestContext.Current.CancellationToken everywhere would only add noise. -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
