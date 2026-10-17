@@ -9,6 +9,7 @@ jobs:
         # macos-14 = the oldest supported macOS (Sonoma), macos-latest = the current one; both Apple Silicon.
         os: [macos-14, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
@@ -17,7 +18,8 @@ jobs:
       - name: Build
         run: dotnet build WaterCa7sPcCleaner.Mac.sln -c Release
       - name: Tests (they also save the pages on fixture data)
-        run: dotnet test WaterCa7sPcCleaner.Mac.sln -c Release --no-build
+        # A hung test fails after 5 minutes with its name and a dump instead of blocking the job.
+        run: dotnet test WaterCa7sPcCleaner.Mac.sln -c Release --no-build --blame-hang-timeout 5m
         env:
           MAC_SCREENSHOTS_DIR: ${{ github.workspace }}/demo-screenshots
       - name: Screenshots of this Mac (read-only)

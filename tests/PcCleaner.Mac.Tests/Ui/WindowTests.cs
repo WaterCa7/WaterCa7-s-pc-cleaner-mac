@@ -11,10 +11,26 @@ using Xunit;
 
 namespace PcCleaner.Mac.Tests.Ui;
 
+[Collection(UiCollection.Name)]
 public class WindowTests
 {
     /// <summary>The real pages on a fake Mac (fixture output): what the screenshots show.</summary>
     internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings());
+
+    /// <summary>Shows the main window; disposing closes it, so its bindings let go of the shared log and commands.</summary>
+    internal sealed class ShownWindow(MainViewModel vm) : IDisposable
+    {
+        public MainWindow Window { get; } = Open(vm);
+
+        public void Dispose() => Window.Close();
+
+        private static MainWindow Open(MainViewModel vm)
+        {
+            var window = new MainWindow { DataContext = vm };
+            window.Show();
+            return window;
+        }
+    }
 
     internal static List<string?> Texts(Window window)
         => window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
@@ -22,8 +38,8 @@ public class WindowTests
     [AvaloniaFact]
     public void Sidebar_ListsThePages_AndShowsTheFirst()
     {
-        var window = new MainWindow { DataContext = DemoViewModel(MacInfoServiceTests.Mac()) };
-        window.Show();
+        using var shown = new ShownWindow(DemoViewModel(MacInfoServiceTests.Mac()));
+        var window = shown.Window;
         Dispatcher.UIThread.RunJobs();
         var texts = Texts(window);
         Assert.Contains("Главная", texts);
@@ -38,8 +54,8 @@ public class WindowTests
     public async Task Dashboard_AfterScan_ShowsTheScoreAndTheMac()
     {
         var vm = DemoViewModel(MacInfoServiceTests.Mac());
-        var window = new MainWindow { DataContext = vm };
-        window.Show();
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
         var dashboard = (PcCleaner.Modules.Dashboard.DashboardViewModel)vm.Pages[0];
         await dashboard.OnNavigatedToAsync();
         await dashboard.ScanAsync(CancellationToken.None);
@@ -56,8 +72,8 @@ public class WindowTests
     {
         var runner = MacInfoServiceTests.Mac().OnFixture("/bin/df", new[] { "-k", "-P", "/System/Volumes/Data" }, "df/low-space.txt");
         var vm = DemoViewModel(runner);
-        var window = new MainWindow { DataContext = vm };
-        window.Show();
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
         await ((PcCleaner.Modules.Dashboard.DashboardViewModel)vm.Pages[0]).ScanAsync(CancellationToken.None);
         Dispatcher.UIThread.RunJobs();
         var texts = Texts(window);
@@ -70,8 +86,8 @@ public class WindowTests
     public void Navigation_ShowsTheSettingsPage()
     {
         var vm = DemoViewModel(MacInfoServiceTests.Mac());
-        var window = new MainWindow { DataContext = vm };
-        window.Show();
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
         vm.NavigateTo("Settings");
         Dispatcher.UIThread.RunJobs();
         var texts = Texts(window);
@@ -83,8 +99,8 @@ public class WindowTests
     public void Navigation_ShowsAnUpcomingSection()
     {
         var vm = DemoViewModel(MacInfoServiceTests.Mac());
-        var window = new MainWindow { DataContext = vm };
-        window.Show();
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
         vm.NavigateTo("Programs");
         Dispatcher.UIThread.RunJobs();
         Assert.Contains("Раздел появится в следующей сборке", Texts(window));
