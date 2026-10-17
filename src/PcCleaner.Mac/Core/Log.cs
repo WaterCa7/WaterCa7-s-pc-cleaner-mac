@@ -36,6 +36,13 @@ public static class Log
 
     public static ObservableCollection<LogEntry> Entries { get; } = new();
 
+    /// <summary>A copy of <see cref="Entries"/> that is safe to take from any thread (the UI binds to Entries itself).</summary>
+    public static IReadOnlyList<LogEntry> Snapshot()
+    {
+        lock (EntriesLock)
+            return Entries.ToList();
+    }
+
     /// <summary>Raised (on the UI thread) after every new entry.</summary>
     public static event Action<LogEntry>? EntryAdded;
 

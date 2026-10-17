@@ -41,6 +41,6 @@ public class DialogsTests
         Dialogs.UseSilentMode();
         var marker = "сообщение " + Guid.NewGuid();
         await Dialogs.ErrorAsync("Ошибка", marker);
-        Assert.Contains(Log.Entries.ToList(), e => e.Level == LogLevel.Warning && e.Message.Contains(marker));
+        Assert.Contains(Log.Snapshot(), e => e.Level == LogLevel.Warning && e.Message.Contains(marker));
     }
 }

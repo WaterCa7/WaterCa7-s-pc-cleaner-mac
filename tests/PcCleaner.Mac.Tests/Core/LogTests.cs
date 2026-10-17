@@ -18,7 +18,7 @@ public class LogTests
         var marker = "Тест журнала " + Guid.NewGuid();
         Log.Action(marker);
 
-        Assert.Contains(Log.Entries.ToList(), e => e.Message == marker && e.Level == LogLevel.Action);
+        Assert.Contains(Log.Snapshot(), e => e.Message == marker && e.Level == LogLevel.Action);
         Assert.Contains(marker, ReadTodayLog());
     }
 
@@ -28,7 +28,7 @@ public class LogTests
         var marker = "Ошибка теста " + Guid.NewGuid();
         Log.Error(marker, new UnauthorizedAccessException("Access to the path '/x' is denied."));
 
-        var entry = Log.Entries.ToList().Last(e => e.Message.StartsWith(marker));
+        var entry = Log.Snapshot().Last(e => e.Message.StartsWith(marker));
         Assert.Contains("нет доступа", entry.Message);
         Assert.DoesNotContain("Access to the path", entry.Message);
         Assert.Contains("Access to the path", ReadTodayLog());

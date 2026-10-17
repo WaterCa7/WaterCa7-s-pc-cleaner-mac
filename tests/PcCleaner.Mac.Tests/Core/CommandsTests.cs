@@ -10,7 +10,7 @@ public class CommandsTests
     {
         var marker = "сбой " + Guid.NewGuid();
         new RelayCommand(() => throw new InvalidOperationException(marker)).Execute(null);
-        Assert.Contains(Log.Entries.ToList(), e => e.Level == LogLevel.Error && e.Message.Contains(marker));
+        Assert.Contains(Log.Snapshot(), e => e.Level == LogLevel.Error && e.Message.Contains(marker));
     }
 
     [Fact]

@@ -58,7 +58,7 @@ public static class ScreenshotRunner
         Dispatcher.UIThread.MainLoop(done.Token);
         Dispatcher.UIThread.RunJobs();
 
-        var log = Log.Entries.ToList();
+        var log = Log.Snapshot();
         File.WriteAllLines(Path.Combine(options.Dir, "log.txt"), log.Select(e => $"{e.TimeText} [{e.LevelText}] {e.Message}"));
         if (log.Any(e => e.Level == LogLevel.Error))
             exitCode = 1;
