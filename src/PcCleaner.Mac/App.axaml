@@ -1,0 +1,49 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
+             xmlns:settings="using:PcCleaner.Modules.Settings"
+             xmlns:shell="using:PcCleaner.Shell"
+             x:Class="PcCleaner.App"
+             Name="WaterCa7s PC Cleaner"
+             RequestedThemeVariant="Dark">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://WaterCa7sPcCleaner/Themes/Theme.axaml" />
+        <ResourceInclude Source="avares://WaterCa7sPcCleaner/Themes/Icons.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" Accent="#34D399" RegionColor="#0F1218" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://WaterCa7sPcCleaner/Themes/Styles.axaml" />
+  </Application.Styles>
+
+  <!-- Page view model → page view. -->
+  <Application.DataTemplates>
+    <DataTemplate DataType="dashboard:DashboardViewModel">
+      <dashboard:DashboardView />
+    </DataTemplate>
+    <DataTemplate DataType="settings:SettingsViewModel">
+      <settings:SettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="shell:UpcomingPageViewModel">
+      <shell:UpcomingView />
+    </DataTemplate>
+  </Application.DataTemplates>
+
+  <!-- The application menu of the macOS menu bar («Выйти» ⌘Q is added by macOS). -->
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="О программе WaterCa7s PC Cleaner" Click="OnAbout" />
+      <NativeMenuItemSeparator />
+      <NativeMenuItem Header="Настройки…" Gesture="Cmd+OemComma" Click="OnSettings" />
+    </NativeMenu>
+  </NativeMenu.Menu>
+</Application>

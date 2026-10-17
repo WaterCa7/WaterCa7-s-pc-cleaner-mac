@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PcCleaner.Modules.Settings"
+             xmlns:core="using:PcCleaner.Core"
+             x:Class="PcCleaner.Modules.Settings.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="16" Margin="0,0,8,8">
+
+      <!-- ===== Full Disk Access ===== -->
+      <Border Classes="Card">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="H3" Text="Полный доступ к диску" />
+          <DockPanel>
+            <Panel DockPanel.Dock="Left" Width="18" Height="18" Margin="0,1,10,0" VerticalAlignment="Top">
+              <PathIcon Data="{StaticResource Icon.ShieldCheckmark}" Foreground="{StaticResource SuccessBrush}" IsVisible="{Binding IsFdaGranted}" />
+              <PathIcon Data="{StaticResource Icon.Warning}" Foreground="{StaticResource WarningBrush}" IsVisible="{Binding IsFdaMissing}" />
+            </Panel>
+            <TextBlock Text="{Binding FdaText}" TextWrapping="Wrap" />
+          </DockPanel>
+          <StackPanel Spacing="4" IsVisible="{Binding IsFdaMissing}">
+            <TextBlock Classes="Muted" Text="Программа работает и без этого разрешения. Чтобы проверять всё:" />
+            <TextBlock Classes="Muted" Text="1. Нажмите «Открыть настройки» — откроется «Конфиденциальность и безопасность → Полный доступ к диску»." />
+            <TextBlock Classes="Muted" Text="2. Включите WaterCa7s PC Cleaner (если его нет в списке — нажмите «+» и выберите программу в папке «Программы»)." />
+            <TextBlock Classes="Muted" Text="3. Если macOS предложит перезапустить программу — согласитесь, затем нажмите «Проверить снова»." />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="AccentButton" Content="Открыть настройки" Command="{Binding OpenFdaSettingsCommand}" IsVisible="{Binding IsFdaMissing}" />
+            <Button Content="Проверить снова" Command="{Binding RefreshFdaCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- ===== About ===== -->
+      <Border Classes="Card">
+        <StackPanel Spacing="8">
+          <TextBlock Classes="H3" Text="О программе" />
+          <TextBlock Text="{Binding VersionText}" />
+          <TextBlock Classes="Muted" Text="Очистка и проверка безопасности Mac. Ничего не меняется без вашего подтверждения, а файлы уходят в Корзину, откуда их можно вернуть." />
+          <Button Classes="LinkButton" Content="{Binding RepoUrl}" Command="{Binding OpenRepoCommand}" HorizontalAlignment="Left" />
+          <DockPanel Margin="0,4,0,0">
+            <Button DockPanel.Dock="Right" Content="Открыть папку" Command="{Binding OpenDataCommand}" Margin="12,0,0,0" />
+            <StackPanel>
+              <TextBlock Classes="Muted" Text="Данные программы (настройки, резервные копии)" />
+              <TextBlock Text="{Binding DataDir}" TextWrapping="Wrap" FontSize="12.5" />
+            </StackPanel>
+          </DockPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- ===== Log ===== -->
+      <Border Classes="Card">
+        <StackPanel Spacing="8">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Content="Открыть папку журналов" Command="{Binding OpenLogsCommand}" />
+            <TextBlock Classes="H3" Text="Журнал" VerticalAlignment="Center" />
+          </DockPanel>
+          <TextBlock Classes="Muted" Text="Всё, что программа проверила и изменила. Полный журнал — в папке журналов." />
+          <ListBox Classes="Plain" ItemsSource="{Binding LogEntries}" MaxHeight="280">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="core:LogEntry">
+                <Grid ColumnDefinitions="64,84,*">
+                  <TextBlock Classes="Muted" Text="{Binding TimeText}" />
+                  <TextBlock Grid.Column="1" Classes="Muted" Text="{Binding LevelText}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Message}" TextWrapping="Wrap" FontSize="12.5" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

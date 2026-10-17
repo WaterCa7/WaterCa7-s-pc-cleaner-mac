@@ -1,0 +1,80 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:PcCleaner"
+        xmlns:core="using:PcCleaner.Core"
+        xmlns:shell="using:PcCleaner.Shell"
+        x:Class="PcCleaner.MainWindow"
+        x:DataType="local:MainViewModel"
+        Title="WaterCa7s PC Cleaner"
+        Width="1100" Height="720" MinWidth="960" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource TextBrush}"
+        FontSize="13">
+
+  <Grid ColumnDefinitions="236,*">
+
+    <!-- ===== Sidebar ===== -->
+    <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,22,20,22">
+          <!-- The app icon (a drop with cat ears), the same 100x100 drawing as tools/mac/make-icon.ps1. -->
+          <Viewbox Width="38" Height="38">
+            <Canvas Width="100" Height="100">
+              <Rectangle Width="100" Height="100" RadiusX="22" RadiusY="22" Fill="{StaticResource AccentBrush}" />
+              <Path Data="{StaticResource LogoDrop}" Fill="{StaticResource AccentTextBrush}" />
+              <Ellipse Canvas.Left="36" Canvas.Top="54" Width="8" Height="12" Fill="{StaticResource AccentBrush}" />
+              <Ellipse Canvas.Left="56" Canvas.Top="54" Width="8" Height="12" Fill="{StaticResource AccentBrush}" />
+            </Canvas>
+          </Viewbox>
+          <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="WaterCa7s" FontWeight="Bold" FontSize="15.5" />
+            <TextBlock Text="PC Cleaner для Mac" Foreground="{StaticResource MutedBrush}" FontSize="12" />
+          </StackPanel>
+        </StackPanel>
+
+        <ListBox Classes="Nav" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="core:PageViewModel">
+              <StackPanel Orientation="Horizontal" Spacing="13">
+                <PathIcon Width="18" Height="18" Data="{Binding Icon, Converter={x:Static shell:IconConverter.Instance}}" />
+                <TextBlock Text="{Binding Title}" FontSize="13.5" VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- ===== Content ===== -->
+    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto">
+      <StackPanel Margin="32,24,32,10">
+        <TextBlock Classes="H1" Text="{Binding SelectedPage.Title}" />
+        <TextBlock Classes="Muted" FontSize="13" Margin="0,4,0,0" Text="{Binding SelectedPage.Subtitle}" />
+      </StackPanel>
+
+      <!-- Shared busy strip of the current page. -->
+      <Border Grid.Row="1" Margin="32,0,32,8" Classes="InnerCard" Padding="12,8" IsVisible="{Binding SelectedPage.IsBusy}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{Binding SelectedPage.BusyText}" FontSize="12.5" Margin="0,0,0,6" TextTrimming="CharacterEllipsis" />
+            <ProgressBar Value="{Binding SelectedPage.Progress}" Maximum="100" Height="4" MinHeight="4"
+                         IsIndeterminate="{Binding SelectedPage.IsProgressIndeterminate}" />
+          </StackPanel>
+          <Button Grid.Column="1" Content="Отмена" Margin="12,0,0,0" Padding="12,5" Command="{Binding SelectedPage.CancelCommand}" />
+        </Grid>
+      </Border>
+
+      <ContentControl Grid.Row="2" Margin="32,4,24,16" Content="{Binding SelectedPage}" />
+
+      <Border Grid.Row="3" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="32,7">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Right" Classes="Muted" FontSize="11.5" TextWrapping="NoWrap">
+            <Run Text="{Binding VersionText}" /><Run Text=" · Сделано для WaterCa7" />
+          </TextBlock>
+          <TextBlock Classes="Muted" FontSize="11.5" Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

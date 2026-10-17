@@ -50,14 +50,26 @@ public sealed class DashboardViewModel : PageViewModel
     public ObservableCollection<IssueGroupItem> Groups
     {
         get => _groups;
-        private set => Set(ref _groups, value);
+        private set
+        {
+            if (Set(ref _groups, value))
+                OnPropertyChanged(nameof(HasGroups));
+        }
     }
 
     public ObservableCollection<ModuleRow> Modules
     {
         get => _modules;
-        private set => Set(ref _modules, value);
+        private set
+        {
+            if (Set(ref _modules, value))
+                OnPropertyChanged(nameof(HasModules));
+        }
     }
+
+    public bool HasModules => Modules.Count > 0;
+
+    public bool HasGroups => Groups.Count > 0;
 
     public bool IsScanning
     {
@@ -122,7 +134,11 @@ public sealed class DashboardViewModel : PageViewModel
 
     public int FixableCount => _issues.Count(i => i.CanFix && i.AutoFixSafe);
 
+    public bool HasFixable => FixableCount > 0;
+
     public string FixAllText => FixableCount > 0 ? $"Исправить найденное ({FixableCount})" : "Исправить найденное";
+
+    public string ScanButtonText => HasScan ? "Проверить снова" : "Проверить Mac";
 
     /// <summary>Loads the facts about this Mac and the previous scan once.</summary>
     public override Task OnNavigatedToAsync() => _loading ??= LoadAsync();
@@ -349,7 +365,7 @@ public sealed class DashboardViewModel : PageViewModel
                  {
                      nameof(HasScan), nameof(Score), nameof(ScoreText), nameof(ScoreValue), nameof(Verdict), nameof(VerdictDescription),
                      nameof(ScoreBrushKey), nameof(FindingsText), nameof(LastScanText), nameof(HasDelta), nameof(DeltaText),
-                     nameof(FixableCount), nameof(FixAllText),
+                     nameof(FixableCount), nameof(HasFixable), nameof(FixAllText), nameof(ScanButtonText),
                  })
             OnPropertyChanged(name);
         FixAllCommand.RaiseCanExecuteChanged();

@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PcCleaner.Shell"
+             x:Class="PcCleaner.Shell.UpcomingView"
+             x:DataType="vm:UpcomingPageViewModel">
+  <Border Classes="Card" Padding="22" VerticalAlignment="Top">
+    <DockPanel>
+      <Border DockPanel.Dock="Left" Width="52" Height="52" CornerRadius="12" Background="{StaticResource AccentSoftBrush}"
+              VerticalAlignment="Top" Margin="0,0,18,0">
+        <PathIcon Width="26" Height="26" Foreground="{StaticResource AccentBrush}"
+                  Data="{Binding Icon, Converter={x:Static vm:IconConverter.Instance}}" />
+      </Border>
+      <StackPanel Spacing="8">
+        <TextBlock Classes="H3" FontSize="16" Text="Раздел появится в следующей сборке" />
+        <TextBlock Classes="Muted" FontSize="13" Text="{Binding Description}" />
+        <TextBlock Classes="Muted" FontSize="13"
+                   Text="Сейчас Mac-версия собирается по этапам: каждый раздел сначала проверяется на машине macOS в GitHub и на настоящем Mac, а потом попадает в программу." />
+      </StackPanel>
+    </DockPanel>
+  </Border>
+</UserControl>
