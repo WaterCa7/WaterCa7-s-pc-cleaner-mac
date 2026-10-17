@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist [
+  <!ENTITY lol "lollollollollollollollollollol">
+  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+]>
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>&lol2;</string>
+</dict>
+</plist>

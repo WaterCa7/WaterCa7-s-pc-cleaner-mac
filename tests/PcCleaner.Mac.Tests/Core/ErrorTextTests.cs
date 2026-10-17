@@ -28,6 +28,11 @@ public class ErrorTextTests
         => Assert.Equal("не удалось запустить программу macOS (код 2)", ErrorText.For(new Win32Exception(2, "No such file or directory")));
 
     [Fact]
+    public void For_CyrillicPath_InASystemMessage_IsStillTranslated()
+        => Assert.Equal(ErrorText.AccessDenied,
+            ErrorText.For(new UnauthorizedAccessException("Access to the path '/Users/Иван/Library/Safari' is denied.")));
+
+    [Fact]
     public void For_RussianMessage_IsKept()
         => Assert.Equal("своя ошибка", ErrorText.For(new InvalidOperationException("своя ошибка.")));
 

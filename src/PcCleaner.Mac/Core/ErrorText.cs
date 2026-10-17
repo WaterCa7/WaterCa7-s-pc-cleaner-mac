@@ -24,10 +24,9 @@ public static class ErrorText
             return For(inner);
 
         var message = ex.Message?.Trim() ?? "";
-        if (HasCyrillic(message))
-            return message.TrimEnd('.');
-
-        return ex switch
+        // System exceptions are always translated: their English message may contain Cyrillic only because of a path
+        // ("Access to the path '/Users/Иван/…' is denied."). Only the app's own exceptions carry Russian text.
+        var known = ex switch
         {
             OperationCanceledException => "операция отменена",
             UnauthorizedAccessException or SecurityException => AccessDenied,
@@ -39,8 +38,11 @@ public static class ErrorText
             Win32Exception w => $"не удалось запустить программу macOS (код {w.NativeErrorCode})",
             TimeoutException => "превышено время ожидания",
             OutOfMemoryException or InsufficientExecutionStackException => "не хватило памяти",
-            _ => "непредвиденная ошибка — подробности записаны в журнал",
+            _ => null,
         };
+        if (known is not null)
+            return known;
+        return HasCyrillic(message) ? message.TrimEnd('.') : "непредвиденная ошибка — подробности записаны в журнал";
     }
 
     /// <summary>The same as a sentence for a dialog: capitalized, with a final period.</summary>

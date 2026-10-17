@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Text</key>
+	<string>строка</string>
+	<key>Number</key>
+	<integer>42</integer>
+	<key>Real</key>
+	<real>1.5</real>
+	<key>Yes</key>
+	<true/>
+	<key>No</key>
+	<false/>
+	<key>When</key>
+	<date>2026-10-17T12:30:00Z</date>
+	<key>Blob</key>
+	<data>
+	aGVs
+	bG8=
+	</data>
+	<key>List</key>
+	<array>
+		<string>a</string>
+		<integer>7</integer>
+		<string>b</string>
+	</array>
+	<key>Nested</key>
+	<dict>
+		<key>Key</key>
+		<string>inner</string>
+	</dict>
+</dict>
+</plist>
