@@ -89,7 +89,7 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 - `AppCatalog`: `/Applications/*.app`, `/Applications/<папка>/*.app`, `~/Applications`, встроенные `/System/Applications`
   — по флажку, только просмотр; ссылки не открываются (Safari и псевдонимы Xcode — ссылки). `Info.plist`, `_MASReceipt`,
   архитектура — `MachO.Read` по заголовку основного файла, последний запуск — один вызов `mdls` на все программы
-  (значения через ` `), подпись — без полной проверки файлов, свой деинсталлятор, `MacPups`. Размер — `MeasureAsync`
+  (значения через `\0`), подпись — без полной проверки файлов, свой деинсталлятор, `MacPups`. Размер — `MeasureAsync`
   в фоне.
 - `LeftoverFinder`: остатки в `~/Library` только по точному bundle id и точному имени (общие папки и имена других
   программ — без галочки), `Containers` — только с полным доступом, ссылки не берутся.
