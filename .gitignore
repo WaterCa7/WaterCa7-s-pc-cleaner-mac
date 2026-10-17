@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+publish/
+artifacts/
+screenshots/
+out/
+*.log
+.DS_Store

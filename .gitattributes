@@ -1,0 +1,6 @@
+# The app is built and run on macOS: every text file uses LF (shell scripts break with CRLF).
+* text=auto eol=lf
+*.png binary
+*.icns binary
+*.ico binary
+*.p12 binary
