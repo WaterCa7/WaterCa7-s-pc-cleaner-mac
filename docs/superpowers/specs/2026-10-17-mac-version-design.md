@@ -146,7 +146,7 @@ macOS (объекты входа, Finder, папки «Документы»/«Р
 | Кэши программ | `~/Library/Caches/*` | кроме `com.apple.*`, кэшей запущенных программ (по bundle id и имени), категорий ниже; файлы, изменённые за последний час, пропускаются |
 | Журналы и сбои | `~/Library/Logs`, `~/Library/Logs/DiagnosticReports` | старше 7 дней, кроме журналов этой программы |
 | Кэши браузеров | Safari, Chrome, Edge, Brave, Opera, Яндекс, Firefox | только папки кэша из белого списка (`Cache`, `Code Cache`, `GPUCache`, `cache2`, `ShaderCache`, `GrShaderCache`) в известных корнях браузеров; пароли, история, cookies, закладки, сессии, Local Storage — никогда; запущенный браузер пропускается («закройте Chrome») |
-| Разработка | Xcode DerivedData, `CoreSimulator/Caches`, Homebrew (`brew cleanup`), npm (`~/.npm/_cacache`), pip, Yarn, CocoaPods | Xcode/симулятор не должны работать; архивы Xcode и iOS DeviceSupport только показываются с размером |
+| Разработка | Xcode DerivedData, `CoreSimulator/Caches`, загрузки Homebrew (`~/Library/Caches/Homebrew`; не `brew cleanup` — та удаляет и старые версии пакетов), npm (`~/.npm/_cacache`), pip, Yarn, CocoaPods | Xcode/симулятор не должны работать; архивы Xcode и iOS DeviceSupport только показываются с размером |
 | Корзина | `~/.Trash` | размер; «Очистить корзину» через Finder с отдельным подтверждением — единственное безвозвратное удаление |
 
 - Safari, контейнеры приложений и Корзина читаются только с полным доступом к диску; без него категория показывает
