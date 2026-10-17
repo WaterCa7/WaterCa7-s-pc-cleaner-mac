@@ -20,7 +20,15 @@ app="$out/WaterCa7s PC Cleaner.app"
 zip="$out/WaterCa7sPcCleaner-osx-arm64.zip"
 rm -rf "$publish" "$app" "$zip"
 
-dotnet publish "$project" -c Release -r osx-arm64 --self-contained true -p:DebugType=none -o "$publish"
+# Single file: the managed assemblies live inside the executable, so Contents/MacOS holds only Mach-O files
+# (the program and the native Avalonia/Skia/HarfBuzz libraries) — codesign treats every file there as code.
+dotnet publish "$project" -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:DebugType=none -o "$publish"
+for file in "$publish"/*; do
+  if ! file -b "$file" | grep -q 'Mach-O'; then
+    echo "Not a Mach-O file in the publish folder (it would break the signature): $file" >&2
+    exit 1
+  fi
+done
 
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp -R "$publish/." "$app/Contents/MacOS/"
