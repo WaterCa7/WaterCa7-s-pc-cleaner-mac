@@ -1,0 +1,63 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    name: Build, sign and publish
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - name: Check version and notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          project="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/PcCleaner.Mac/PcCleaner.Mac.csproj | head -n 1)"
+          if [[ "$project" != "$version" ]]; then
+            echo "Tag v$version does not match <Version>$project</Version>" >&2
+            exit 1
+          fi
+          if [[ ! -s "docs/release-notes/$version.md" ]]; then
+            echo "docs/release-notes/$version.md is missing" >&2
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - run: dotnet build WaterCa7sPcCleaner.Mac.sln -c Release
+      - run: dotnet test WaterCa7sPcCleaner.Mac.sln -c Release --no-build --blame-hang-timeout 5m
+      - name: Build and sign the .app
+        env:
+          MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
+          MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
+        run: |
+          if [[ -z "$MAC_SIGNING_P12" ]]; then
+            echo "A release must be signed with the certificate (MAC_SIGNING_P12 is empty)" >&2
+            exit 1
+          fi
+          tools/mac/make-app.sh out
+      # The app's own checks (ScriptManifest_*) verify the signature with the key built into the app, unpack the zip with
+      # the app's unpacker and run codesign on the result.
+      - name: Sign update.json
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          if [[ -z "$UPDATE_SIGNING_KEY" ]]; then
+            echo "UPDATE_SIGNING_KEY is empty" >&2
+            exit 1
+          fi
+          key="$RUNNER_TEMP/update-signing.pem"
+          printf '%s\n' "$UPDATE_SIGNING_KEY" > "$key"
+          chmod 600 "$key"
+          tools/mac/make-update-manifest.sh "$VERSION" out/WaterCa7sPcCleaner-osx-arm64.zip "docs/release-notes/$VERSION.md" "$key" publish
+          rm -f "$key"
+          UPDATE_MANIFEST_DIR="$PWD/publish" dotnet test tests/PcCleaner.Mac.Tests -c Release --no-build --filter "FullyQualifiedName~ScriptManifest"
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" publish/WaterCa7sPcCleaner-osx-arm64.zip publish/update.json publish/update.json.sig \
+            --title "WaterCa7s PC Cleaner для Mac $VERSION" --notes-file "docs/release-notes/$VERSION.md"
