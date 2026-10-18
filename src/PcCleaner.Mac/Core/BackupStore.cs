@@ -9,9 +9,15 @@ public enum BackupKind
 
     /// <summary>A login item (name, path, hidden) recorded before it was removed.</summary>
     LoginItem,
+
+    /// <summary>Proxy and DNS settings of the network services (JSON) before they were changed.</summary>
+    NetworkSettings,
+
+    /// <summary>A copy of /etc/hosts before lines were commented out.</summary>
+    HostsFile,
 }
 
-/// <summary>One backup: when, what, where it came from; <see cref="StoredFile"/> is the copy (for plists).</summary>
+/// <summary>One backup: when, what, where it came from; <see cref="StoredFile"/> is the copy (plists, hosts, settings JSON).</summary>
 public sealed record BackupRecord(
     string Id,
     DateTime Time,
@@ -39,18 +45,49 @@ public sealed class BackupStore
 
     /// <summary>Copies <paramref name="plistPath"/> into its own folder and records it.</summary>
     public BackupRecord SavePlist(string plistPath, string title, IReadOnlyDictionary<string, string>? details = null)
+        => SaveFile(BackupKind.LaunchdPlist, plistPath, title, details);
+
+    /// <summary>Copies a file (a plist, /etc/hosts) into its own folder and records it; a copy that differs throws.</summary>
+    public BackupRecord SaveFile(BackupKind kind, string path, string title, IReadOnlyDictionary<string, string>? details = null)
     {
         var id = NewId();
         var folder = AppPaths.EnsureDir(Path.Combine(Dir, id));
-        var stored = Path.Combine(folder, Path.GetFileName(plistPath));
-        File.Copy(plistPath, stored);
-        if (new FileInfo(stored).Length != new FileInfo(plistPath).Length)
-            throw new IOException("копия plist не совпала с оригиналом");
-        var record = new BackupRecord(id, DateTime.Now, BackupKind.LaunchdPlist, title, plistPath, stored,
+        var stored = Path.Combine(folder, Path.GetFileName(path));
+        File.Copy(path, stored);
+        if (new FileInfo(stored).Length != new FileInfo(path).Length)
+            throw new IOException("копия файла не совпала с оригиналом");
+        var record = new BackupRecord(id, DateTime.Now, kind, title, path, stored,
             details?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, string>());
         Add(record);
-        Log.Info($"Резервная копия: {plistPath} → {stored}");
+        Log.Info($"Резервная копия: {path} → {stored}");
         return record;
+    }
+
+    /// <summary>Saves settings as JSON (e.g. the proxies of every network service) and records them.</summary>
+    public BackupRecord SaveJson<T>(BackupKind kind, string title, T value, IReadOnlyDictionary<string, string>? details = null)
+    {
+        var id = NewId();
+        var folder = AppPaths.EnsureDir(Path.Combine(Dir, id));
+        var stored = Path.Combine(folder, "settings.json");
+        File.WriteAllText(stored, JsonSerializer.Serialize(value, JsonOptions));
+        var record = new BackupRecord(id, DateTime.Now, kind, title, null, stored,
+            details?.ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, string>());
+        Add(record);
+        Log.Info($"Резервная копия настроек: {title} → {stored}");
+        return record;
+    }
+
+    /// <summary>Reads settings saved by <see cref="SaveJson{T}"/>; null when the copy is missing or damaged.</summary>
+    public static T? ReadJson<T>(BackupRecord record)
+    {
+        try
+        {
+            return record.StoredFile is { } file && File.Exists(file) ? JsonSerializer.Deserialize<T>(File.ReadAllText(file), JsonOptions) : default;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return default;
+        }
     }
 
     public BackupRecord SaveLoginItem(string name, string path, bool hidden)

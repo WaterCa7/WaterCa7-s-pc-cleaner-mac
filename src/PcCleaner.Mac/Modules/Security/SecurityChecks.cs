@@ -47,7 +47,8 @@ public sealed record SecurityReport(
     IReadOnlyList<(string Service, IReadOnlyList<string> Servers)> ManualDns,
     string? HostsText,
     IReadOnlyList<HostsEntry> HostsEntries,
-    IReadOnlyList<ConfigProfile> Profiles)
+    IReadOnlyList<ConfigProfile> Profiles,
+    int? MacOsMajor = null)
 {
     public SecurityCheck? Find(string id) => Checks.FirstOrDefault(c => c.Id == id);
 }

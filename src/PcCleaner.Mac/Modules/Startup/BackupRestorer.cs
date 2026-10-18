@@ -33,24 +33,36 @@ public sealed class BackupRestorer
     public BackupStore Store => _store;
 
     /// <summary>What happened before the copy was made, for the list: "отключена", "удалена"…</summary>
-    public static string Describe(BackupRecord record) => record.Kind == BackupKind.LoginItem
-        ? "убран из объектов входа"
-        : record.Details.GetValueOrDefault("action") switch
+    public static string Describe(BackupRecord record) => record.Kind switch
+    {
+        BackupKind.LoginItem => "убран из объектов входа",
+        BackupKind.NetworkSettings => record.Details.GetValueOrDefault("action") == "dns" ? "DNS изменён" : "прокси выключен",
+        BackupKind.HostsFile => "файл hosts изменён",
+        _ => record.Details.GetValueOrDefault("action") switch
         {
             "удаление" => "запись удалена",
             "включение" => "запись включена",
             _ => "запись отключена",
-        };
+        },
+    };
 
     /// <summary>What «Восстановить» will do, for the confirmation.</summary>
-    public static string WhatRestoreDoes(BackupRecord record) => record.Kind == BackupKind.LoginItem
-        ? "Программа снова будет открываться при входе."
-        : record.Details.GetValueOrDefault("action") == "включение"
+    public static string WhatRestoreDoes(BackupRecord record) => record.Kind switch
+    {
+        BackupKind.LoginItem => "Программа снова будет открываться при входе.",
+        BackupKind.NetworkSettings => "Прежние настройки прокси и DNS вернутся (macOS спросит пароль администратора).",
+        BackupKind.HostsFile => "Файл hosts вернётся к прежнему виду (macOS спросит пароль администратора).",
+        _ => record.Details.GetValueOrDefault("action") == "включение"
             ? "Запись снова будет отключена."
-            : "Запись вернётся на место и снова будет запускаться при входе.";
+            : "Запись вернётся на место и снова будет запускаться при входе.",
+    };
 
     public async Task<StartupResult> RestoreAsync(BackupRecord record, CancellationToken ct)
     {
+        if (record.Kind == BackupKind.NetworkSettings)
+            return await RestoreNetworkAsync(record, ct);
+        if (record.Kind == BackupKind.HostsFile)
+            return await RestoreHostsAsync(record, ct);
         if (record.Kind == BackupKind.LoginItem)
         {
             var path = record.Details.GetValueOrDefault("path") ?? record.OriginalPath;
@@ -119,6 +131,33 @@ public sealed class BackupRestorer
         if (!loaded && !(await RunAsync(ct, "bootstrap", domainOnly, original)).Ok)
             return new StartupResult(true, $"«{label}» восстановлена и запустится при следующем входе.");
         return new StartupResult(true, $"«{label}» восстановлена.");
+    }
+
+    private async Task<StartupResult> RestoreNetworkAsync(BackupRecord record, CancellationToken ct)
+    {
+        var snapshots = BackupStore.ReadJson<List<Security.NetworkSnapshot>>(record);
+        if (snapshots is not { Count: > 0 })
+            return new StartupResult(false, "Копия настроек не читается — восстановить нельзя.");
+        var commands = snapshots.SelectMany(Security.SecurityFixes.RestoreCommands).ToList();
+        var result = await _admin.RunAsync("Вернуть прежние настройки прокси и DNS", commands, ct);
+        return result.Ok
+            ? new StartupResult(true, "Прежние настройки прокси и DNS восстановлены.")
+            : new StartupResult(false, result.Cancelled ? "Отменено — ничего не изменено." : $"Не удалось восстановить настройки: {result.Error}");
+    }
+
+    private async Task<StartupResult> RestoreHostsAsync(BackupRecord record, CancellationToken ct)
+    {
+        if (record.StoredFile is not { } stored || !File.Exists(stored) || record.OriginalPath is not { } original)
+            return new StartupResult(false, "Файл копии не найден — восстановить нельзя.");
+        var result = await _admin.RunAsync("Вернуть прежний файл hosts", new[]
+        {
+            new AdminCommand("/bin/cp", stored, original),
+            new AdminCommand("/usr/bin/dscacheutil", "-flushcache"),
+            new AdminCommand("/usr/bin/killall", "-HUP", "mDNSResponder"),
+        }, ct);
+        return result.Ok
+            ? new StartupResult(true, "Файл hosts восстановлен.")
+            : new StartupResult(false, result.Cancelled ? "Отменено — ничего не изменено." : $"Не удалось восстановить файл hosts: {result.Error}");
     }
 
     private async Task<StartupResult> DisableAgainAsync(string label, string target, bool system, bool loaded, CancellationToken ct)

@@ -145,7 +145,7 @@ public sealed class SecurityService
         checks.Add(hostsCheck);
         checks.Add(WifiCheck(NetworkParsers.Wifi((await RunAsync(ct, "/usr/sbin/system_profiler", "SPAirPortDataType", "-json")).StdOut)));
 
-        return new SecurityReport(checks, proxies, manualDns, hostsText, hostsEntries, profiles);
+        return new SecurityReport(checks, proxies, manualDns, hostsText, hostsEntries, profiles, major);
     }
 
     /// <summary>Updates offered by `softwareupdate -l` (slow: asks Apple's servers, up to a minute).</summary>
