@@ -27,6 +27,11 @@ public sealed class AppSettings
     /// </summary>
     public Dictionary<string, Dictionary<string, string>> ModuleData { get; set; } = new();
 
+    /// <summary>Check for updates at startup, download them in the background and install them at the next start.</summary>
+    public bool AutoUpdate { get; set; } = true;
+
+    public DateTime? LastUpdateCheckUtc { get; set; }
+
     public static AppSettings Load()
     {
         try

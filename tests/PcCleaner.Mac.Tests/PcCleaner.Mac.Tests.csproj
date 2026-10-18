@@ -32,6 +32,7 @@
     <!-- Packaging files checked by Packaging/*Tests. -->
     <None Include="..\..\src\PcCleaner.Mac\Assets\AppIcon.icns" Link="Assets\AppIcon.icns" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\tools\mac\Info.plist" Link="Assets\Info.plist" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\tools\update-signing-public.pem" Link="update-signing-public.pem" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

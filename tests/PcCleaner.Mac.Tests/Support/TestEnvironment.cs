@@ -8,6 +8,14 @@ internal static class TestEnvironment
 {
     public static string Root { get; } = Path.Combine(Path.GetTempPath(), "WaterCa7sMacTests-" + Guid.NewGuid().ToString("N")[..8]);
 
+    /// <summary>A fresh folder under the test root (not removed: the whole root is temporary).</summary>
+    public static string NewTempDir(string name = "t")
+    {
+        var dir = Path.Combine(Root, "work", name + "-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     [ModuleInitializer]
     internal static void Init()
     {
