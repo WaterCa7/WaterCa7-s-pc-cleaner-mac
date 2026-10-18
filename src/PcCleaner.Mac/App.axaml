@@ -4,6 +4,7 @@
              xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
              xmlns:processes="using:PcCleaner.Modules.Processes"
              xmlns:programs="using:PcCleaner.Modules.Programs"
+             xmlns:security="using:PcCleaner.Modules.Security"
              xmlns:settings="using:PcCleaner.Modules.Settings"
              xmlns:shell="using:PcCleaner.Shell"
              x:Class="PcCleaner.App"
@@ -45,8 +46,8 @@
     <DataTemplate DataType="settings:SettingsViewModel">
       <settings:SettingsView />
     </DataTemplate>
-    <DataTemplate DataType="shell:UpcomingPageViewModel">
-      <shell:UpcomingView />
+    <DataTemplate DataType="security:SecurityViewModel">
+      <security:SecurityView />
     </DataTemplate>
   </Application.DataTemplates>
 

@@ -8,11 +8,18 @@ namespace PcCleaner.Mac.Tests.Shell;
 
 public class MainViewModelTests
 {
-    private static MainViewModel Create() => new(new PageViewModel[]
+    private sealed class Page(string key, string title) : PageViewModel
     {
-        new UpcomingPageViewModel("Cleaner", "Очистка и диски", "", "Broom", ""),
-        new UpcomingPageViewModel("Programs", "Программы", "", "Apps", ""),
-    });
+        public override string Title => title;
+
+        public override string Subtitle => "";
+
+        public override string Icon => "Home";
+
+        public override string Key => key;
+    }
+
+    private static MainViewModel Create() => new(new PageViewModel[] { new Page("Cleaner", "Очистка и диски"), new Page("Programs", "Программы") });
 
     [Fact]
     public void StartsOnTheFirstPage() => Assert.Equal("Cleaner", Create().SelectedPage!.Key);
@@ -40,7 +47,7 @@ public class MainViewModelTests
     [Fact]
     public void PageFactory_BuildsTheSidebar_AndTheDashboardCanNavigate()
     {
-        var main = PageFactory.CreateMain(new FakeCommandRunner(), new AppSettings(), Ui.WindowTests.EmptyStartup, Ui.WindowTests.EmptyApps);
+        var main = PageFactory.CreateMain(new FakeCommandRunner(), new AppSettings(), Ui.WindowTests.EmptyStartup, Ui.WindowTests.EmptyApps, Ui.WindowTests.TestSecurity);
         Assert.Equal(new[] { "Dashboard", "Cleaner", "Processes", "Programs", "Security", "Settings" }, main.Pages.Select(p => p.Key));
         Assert.Equal(new[] { "Главная", "Очистка и диски", "Процессы и автозагрузка", "Программы", "Безопасность и сеть", "Настройки" },
             main.Pages.Select(p => p.Title));

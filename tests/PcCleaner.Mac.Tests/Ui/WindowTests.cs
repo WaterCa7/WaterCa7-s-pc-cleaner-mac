@@ -7,6 +7,7 @@ using PcCleaner.Core;
 using PcCleaner.Mac.Tests.Dashboard;
 using PcCleaner.Mac.Tests.Support;
 using PcCleaner.Modules.Programs;
+using PcCleaner.Modules.Security;
 using PcCleaner.Modules.Startup;
 using PcCleaner.Shell;
 using Xunit;
@@ -26,7 +27,23 @@ public class WindowTests
         Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "apps", "UserApplications")).FullName,
         new[] { Directory.CreateDirectory(Path.Combine(TestEnvironment.Root, "apps", "System")).FullName });
 
-    internal static MainViewModel DemoViewModel(FakeCommandRunner runner) => PageFactory.CreateMain(runner, new AppSettings(), EmptyStartup, EmptyApps);
+    /// <summary>Files of a default Mac in the test root: the window tests never read the machine's own /etc/hosts.</summary>
+    internal static readonly SecurityPaths TestSecurity = new(
+        WriteFile("security/hosts", "127.0.0.1 localhost\n::1 localhost\n"),
+        Path.Combine(TestEnvironment.Root, "security", "no-loginwindow.plist"),
+        Path.Combine(TestEnvironment.Root, "security", "no-SoftwareUpdate.plist"),
+        Path.Combine(TestEnvironment.Root, "security", "no-XProtect.plist"));
+
+    internal static MainViewModel DemoViewModel(FakeCommandRunner runner)
+        => PageFactory.CreateMain(runner, new AppSettings(), EmptyStartup, EmptyApps, TestSecurity);
+
+    private static string WriteFile(string relative, string content)
+    {
+        var path = Path.Combine(TestEnvironment.Root, relative);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, content);
+        return path;
+    }
 
     private static StartupFolders MakeEmptyStartup()
     {
@@ -112,14 +129,4 @@ public class WindowTests
         Assert.Contains("Журнал", texts);
     }
 
-    [AvaloniaFact]
-    public void Navigation_ShowsAnUpcomingSection()
-    {
-        var vm = DemoViewModel(MacInfoServiceTests.Mac());
-        using var shown = new ShownWindow(vm);
-        var window = shown.Window;
-        vm.NavigateTo("Security");
-        Dispatcher.UIThread.RunJobs();
-        Assert.Contains("Раздел появится в следующей сборке", Texts(window));
-    }
 }
