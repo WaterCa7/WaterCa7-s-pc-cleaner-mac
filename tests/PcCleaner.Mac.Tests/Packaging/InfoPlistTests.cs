@@ -13,7 +13,8 @@ public class InfoPlistTests
         Assert.Equal("WaterCa7sPcCleaner", d.GetString("CFBundleExecutable"));
         Assert.Equal("@VERSION@", d.GetString("CFBundleShortVersionString"));
         Assert.Equal("@VERSION@", d.GetString("CFBundleVersion"));
-        Assert.Equal("14.0", d.GetString("LSMinimumSystemVersion"));
+        // macOS 12 Monterey: the oldest macOS the .NET runtime of the bundle is built for (Intel Macs from 2015 on).
+        Assert.Equal("12.0", d.GetString("LSMinimumSystemVersion"));
         Assert.Equal("AppIcon", d.GetString("CFBundleIconFile"));
         Assert.Equal("ru", d.GetString("CFBundleDevelopmentRegion"));
         Assert.Equal("APPL", d.GetString("CFBundlePackageType"));

@@ -154,7 +154,7 @@ CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, 
 
 ## Автообновление
 
-- `Core/Updates` — перенос схемы Windows 1.1.0: `UpdateManifest` (`osx-arm64`, `.zip`, ссылка только на релиз этой версии
+- `Core/Updates` — перенос схемы Windows 1.1.0: `UpdateManifest` (`osx-arm64` или `osx-x64` по архитектуре процесса, `.zip`, ссылка только на релиз этой версии
   этого репозитория), `UpdateSignature` (ECDSA P-256, DER) и `UpdateKeys` (свой ключ Mac; закрытый — только в секрете
   `UPDATE_SIGNING_KEY` и резервной копии), `UpdateStore` (`Updates/<версия>/`, `state.json`), `UpdateClient` (https,
   размер и SHA-256 при скачивании), `UpdateService` (состояния, проверка в фоне, установка до окна, `--updated-from`),

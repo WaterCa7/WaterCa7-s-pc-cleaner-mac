@@ -6,7 +6,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macos-14 = the oldest supported macOS (Sonoma), macos-latest = the current one (both Apple Silicon),
+        # macos-14 = the oldest macOS GitHub still runs (the app starts on macOS 12+), macos-latest = the current one
+        # (both Apple Silicon),
         # macos-15-intel = an Intel Mac.
         os: [macos-14, macos-latest, macos-15-intel]
     runs-on: ${{ matrix.os }}
