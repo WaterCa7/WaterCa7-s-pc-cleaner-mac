@@ -1,0 +1,8 @@
+Software Update Tool
+
+Finding available software
+Software Update found the following new or updated software:
+* Label: Safari26.6.1SonomaAuto-26.6.1
+	Title: Safari, Version: 26.6.1, Size: 218038KiB, Recommended: YES, 
+* Label: macOS 27.0.1-26A434
+	Title: macOS 27.0.1, Version: 27.0.1, Size: 14448212KiB, Recommended: YES, Action: restart, 

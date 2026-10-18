@@ -1,0 +1,15 @@
+{
+  "SPAirPortDataType" : [
+    {
+      "spairport_software_information" : {
+        "spairport_corewlan_version" : "16.0 (1657)",
+        "spairport_corewlankit_version" : "16.0 (1657)",
+        "spairport_diagnostics_version" : "11.0 (1163)",
+        "spairport_extra_version" : "1.0 (19155.3)",
+        "spairport_family_version" : "12.0 (1200.13.1)",
+        "spairport_profiler_version" : "15.0 (1502)",
+        "spairport_utility_version" : "6.3.9 (639.29)"
+      }
+    }
+  ]
+}

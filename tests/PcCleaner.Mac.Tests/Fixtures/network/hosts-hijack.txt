@@ -1,0 +1,10 @@
+##
+# Host Database
+##
+127.0.0.1	localhost
+255.255.255.255	broadcasthost
+::1             localhost
+0.0.0.0 swscan.apple.com
+0.0.0.0 ocsp.apple.com
+185.10.10.10 online.sberbank.ru
+0.0.0.0 ads.example.com # реклама

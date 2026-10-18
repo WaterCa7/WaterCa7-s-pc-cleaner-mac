@@ -1,0 +1,20 @@
+<dictionary> {
+  ExceptionsList : <array> {
+    0 : *.local
+    1 : 169.254/16
+  }
+  FTPPassive : 1
+  HTTPEnable : 1
+  HTTPPort : 8080
+  HTTPProxy : 127.0.0.1
+  HTTPSEnable : 1
+  HTTPSPort : 8080
+  HTTPSProxy : 127.0.0.1
+  ProxyAutoConfigEnable : 1
+  ProxyAutoConfigURLString : http://proxy.example.com/proxy.pac
+  __SCOPED__ : <dictionary> {
+    en0 : <dictionary> {
+      HTTPEnable : 0
+    }
+  }
+}

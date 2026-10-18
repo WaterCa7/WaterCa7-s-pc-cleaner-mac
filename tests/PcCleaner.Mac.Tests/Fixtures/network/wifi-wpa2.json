@@ -1,0 +1,18 @@
+{
+  "SPAirPortDataType" : [
+    {
+      "spairport_airport_interfaces" : [
+        {
+          "_name" : "en0",
+          "spairport_current_network_information" : {
+            "_name" : "Home",
+            "spairport_network_channel" : "6 (2GHz, 20MHz)",
+            "spairport_network_phymode" : "802.11n",
+            "spairport_security_mode" : "spairport_security_mode_wpa2_personal"
+          },
+          "spairport_status_information" : "spairport_status_connected"
+        }
+      ]
+    }
+  ]
+}

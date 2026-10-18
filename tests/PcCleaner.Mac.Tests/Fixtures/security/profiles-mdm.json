@@ -1,0 +1,28 @@
+{
+  "SPConfigurationProfileDataType" : [
+    {
+      "_items" : [
+        {
+          "_items" : [
+            { "_name" : "com.apple.mdm", "spconfigprofile_payload_display_name" : "MDM" },
+            { "_name" : "com.apple.security.root", "spconfigprofile_payload_display_name" : "Acme Root CA" }
+          ],
+          "_name" : "Acme Device Management",
+          "spconfigprofile_install_date" : "2026-01-10 09:00:00 +0000",
+          "spconfigprofile_organization" : "Acme Corp",
+          "spconfigprofile_profile_identifier" : "com.acme.mdm"
+        },
+        {
+          "_items" : [
+            { "_name" : "com.google.Chrome", "spconfigprofile_payload_display_name" : "Chrome" },
+            { "_name" : "com.apple.proxy.http.global", "spconfigprofile_payload_display_name" : "Proxy" }
+          ],
+          "_name" : "Search Settings",
+          "spconfigprofile_install_date" : "2026-10-01 12:00:00 +0000",
+          "spconfigprofile_profile_identifier" : "com.searchmarquis.settings"
+        }
+      ],
+      "_name" : "spconfigprofile_device_profiles"
+    }
+  ]
+}

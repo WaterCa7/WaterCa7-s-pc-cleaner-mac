@@ -1,0 +1,15 @@
+
+	disabled services = {
+		"com.veertu.anka.addons" => enabled
+		"com.veertu.anka.addons.systemsetup" => enabled
+		"com.apple.CSCSupportd" => disabled
+		"com.apple.mdmclient.daemon.runatboot" => disabled
+		"com.apple.ftpd" => disabled
+		"com.veertu.anka.addons.ssh" => enabled
+		"com.openssh.sshd" => enabled
+		"com.apple.PerfPowerServices" => disabled
+		"com.veertu.anka.addons.ankaupd" => enabled
+		"com.apple.SubmitDiagInfo" => disabled
+		"com.apple.backupd" => disabled
+		"com.apple.apsd" => disabled
+	}

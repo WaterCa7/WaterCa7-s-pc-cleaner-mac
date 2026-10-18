@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AccountInfo</key>
+	<dict>
+		<key>FirstLogins</key>
+		<dict>
+			<key>testuser</key>
+			<integer>1</integer>
+		</dict>
+		<key>MaximumUsers</key>
+		<integer>1</integer>
+		<key>OnConsole</key>
+		<dict/>
+	</dict>
+	<key>GuestEnabled</key>
+	<false/>
+	<key>OptimizerPreviousBuild</key>
+	<string>25G83</string>
+	<key>RecentUsers</key>
+	<array>
+		<string>testuser</string>
+	</array>
+	<key>UseVoiceOverLegacyMigrated</key>
+	<true/>
+	<key>autoLoginUser</key>
+	<string>testuser</string>
+	<key>autoLoginUserScreenLocked</key>
+	<false/>
+	<key>lastUser</key>
+	<string>loggedIn</string>
+	<key>lastUserName</key>
+	<string>testuser</string>
+</dict>
+</plist>

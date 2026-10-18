@@ -15,3 +15,10 @@
 
 Частичная копия вне этой папки: `Modules/Dashboard/ScoreModels.cs` — `ScoreTrend`, `ScoreDelta`, `ReclaimableSplit` из
 `src/PcCleaner/Modules/Dashboard/ReportModels.cs` (строки 5–103, `ad2a9fb`); остальное в том файле зависит от WPF.
+
+Адаптированные копии вне этой папки (меняются отдельно от Windows-версии):
+
+- `Modules/Security/HostsRules.cs` — из `src/PcCleaner/Modules/Security/HostsRules.cs` (`c53ca62`): добавлены домены
+  обновлений и проверок подписи Apple, в текстах «macOS» вместо «Windows».
+- `Modules/Security/HostsFile.cs` — разбор строк и `SplitLines` из `src/PcCleaner/Modules/Security/HostsFile.cs`
+  (`c53ca62`); запись файла на Mac идёт через окно пароля, поэтому вместо `RemoveLines` — `CommentOut` (новый текст).
