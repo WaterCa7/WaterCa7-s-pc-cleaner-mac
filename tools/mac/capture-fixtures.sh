@@ -147,6 +147,24 @@ run loginwindow-prefs /usr/bin/plutil -convert xml1 -o - /Library/Preferences/co
 run xprotect /usr/bin/plutil -convert xml1 -o - /Library/Apple/System/Library/CoreServices/XProtect.bundle/Contents/Info.plist
 run hosts /bin/cat /etc/hosts
 run softwareupdate-list /usr/sbin/softwareupdate -l
+run xprotect-version /usr/bin/xprotect version
+run xprotect-stat /usr/bin/stat -f '%m %Sm' /Library/Apple/System/Library/CoreServices/XProtect.bundle/Contents/Info.plist
+run profiles-enrollment /usr/bin/profiles status -type enrollment
+run wifi /usr/sbin/system_profiler SPAirPortDataType -json
+run launchctl-print-screensharing /bin/launchctl print system/com.apple.screensharing
+run networksetup-order /usr/sbin/networksetup -listnetworkserviceorder
+/usr/sbin/networksetup -listallnetworkservices 2>/dev/null | tail -n +2 | while IFS= read -r service; do
+  service="${service#\*}"
+  [[ -n "$service" ]] || continue
+  name="$(printf '%s' "$service" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_')"
+  run "net-dns-$name" /usr/sbin/networksetup -getdnsservers "$service"
+  run "net-web-$name" /usr/sbin/networksetup -getwebproxy "$service"
+  run "net-secure-$name" /usr/sbin/networksetup -getsecurewebproxy "$service"
+  run "net-socks-$name" /usr/sbin/networksetup -getsocksfirewallproxy "$service"
+  run "net-pac-$name" /usr/sbin/networksetup -getautoproxyurl "$service"
+  run "net-wpad-$name" /usr/sbin/networksetup -getproxyautodiscovery "$service"
+  run "net-info-$name" /usr/sbin/networksetup -getinfo "$service"
+done
 
 echo "Saved to $out:"
 ls -1 "$out"
