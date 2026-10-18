@@ -29,7 +29,7 @@ jobs:
           echo "VERSION=$version" >> "$GITHUB_ENV"
       - run: dotnet build WaterCa7sPcCleaner.Mac.sln -c Release
       - run: dotnet test WaterCa7sPcCleaner.Mac.sln -c Release --no-build --blame-hang-timeout 5m
-      - name: Build and sign the .app
+      - name: Build and sign the .app (Apple Silicon and Intel)
         env:
           MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
           MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
@@ -39,7 +39,8 @@ jobs:
             exit 1
           fi
           tools/mac/make-app.sh out
-      # The app's own checks (ScriptManifest_*) verify the signature with the key built into the app, unpack the zip with
+          tools/mac/make-app.sh out-x64 osx-x64
+      # The app's own checks (ScriptManifest_*) verify the signature with the key built into the app, unpack both zips with
       # the app's unpacker and run codesign on the result.
       - name: Sign update.json
         env:
@@ -52,12 +53,14 @@ jobs:
           key="$RUNNER_TEMP/update-signing.pem"
           printf '%s\n' "$UPDATE_SIGNING_KEY" > "$key"
           chmod 600 "$key"
-          tools/mac/make-update-manifest.sh "$VERSION" out/WaterCa7sPcCleaner-osx-arm64.zip "docs/release-notes/$VERSION.md" "$key" publish
+          tools/mac/make-update-manifest.sh "$VERSION" "docs/release-notes/$VERSION.md" "$key" publish \
+            out/WaterCa7sPcCleaner-osx-arm64.zip out-x64/WaterCa7sPcCleaner-osx-x64.zip
           rm -f "$key"
           UPDATE_MANIFEST_DIR="$PWD/publish" dotnet test tests/PcCleaner.Mac.Tests -c Release --no-build --filter "FullyQualifiedName~ScriptManifest"
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v$VERSION" publish/WaterCa7sPcCleaner-osx-arm64.zip publish/update.json publish/update.json.sig \
+          gh release create "v$VERSION" publish/WaterCa7sPcCleaner-osx-arm64.zip publish/WaterCa7sPcCleaner-osx-x64.zip \
+            publish/update.json publish/update.json.sig \
             --title "WaterCa7s PC Cleaner для Mac $VERSION" --notes-file "docs/release-notes/$VERSION.md"

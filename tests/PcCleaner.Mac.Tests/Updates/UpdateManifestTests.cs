@@ -1,4 +1,5 @@
 using PcCleaner.Mac.Tests.Support;
+using System.Runtime.InteropServices;
 using System.Text;
 using PcCleaner.Core.Updates;
 using Xunit;
@@ -67,6 +68,41 @@ public class UpdateManifestTests
         Assert.Contains("повреждён", p1);
         Assert.Null(UpdateManifest.Parse(Encoding.UTF8.GetBytes("{\"version\":\"1.2.0\",\"files\":{}}"), out var p2));
         Assert.Contains("osx-arm64", p2);
+    }
+
+    [Theory]
+    [InlineData(Architecture.X64, "osx-x64")]
+    [InlineData(Architecture.Arm64, "osx-arm64")]
+    public void ForArchitecture_NamesTheReleaseFileOfThisMac(Architecture architecture, string platform)
+        => Assert.Equal(platform, UpdateManifest.ForArchitecture(architecture));
+
+    [Theory]
+    [InlineData("osx-arm64")]
+    [InlineData("osx-x64")]
+    public void Parse_TakesTheZipOfTheGivenPlatform(string platform)
+    {
+        var json = UpdateTestKit.ManifestJsonFor("1.2.0", 66_617_845, Sha, "osx-arm64", "osx-x64");
+
+        var m = UpdateManifest.Parse(json, platform, out var problem);
+
+        Assert.Null(problem);
+        Assert.Equal($"WaterCa7sPcCleaner-{platform}.zip", m!.Download.Name);
+        Assert.Equal(UpdateTestKit.Url("1.2.0", $"WaterCa7sPcCleaner-{platform}.zip"), m.Download.Url);
+    }
+
+    [Fact]
+    public void Parse_AppleSiliconOnlyRelease_HasNothingForIntel()
+    {
+        Assert.Null(UpdateManifest.Parse(UpdateTestKit.ManifestJson("1.2.0", 66_617_845, Sha), "osx-x64", out var problem));
+        Assert.Contains("osx-x64", problem);
+    }
+
+    [Fact]
+    public void Parse_WithoutPlatform_UsesTheOneOfThisMac()
+    {
+        var json = UpdateTestKit.ManifestJsonFor("1.2.0", 66_617_845, Sha, "osx-arm64", "osx-x64");
+
+        Assert.Equal($"WaterCa7sPcCleaner-{UpdateManifest.Platform}.zip", UpdateManifest.Parse(json, out _)!.Download.Name);
     }
 
     [Theory]

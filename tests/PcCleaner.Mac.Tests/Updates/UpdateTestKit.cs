@@ -32,6 +32,22 @@ internal sealed class UpdateTestKit : IDisposable
             },
         });
 
+    /// <summary>update.json of a release with a zip for every given platform ("osx-arm64", "osx-x64").</summary>
+    public static byte[] ManifestJsonFor(string version, long size, string sha256, params string[] platforms)
+        => JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            version,
+            published = "2026-10-20T12:00:00Z",
+            notes = "Что нового",
+            files = platforms.ToDictionary(p => p, p => (object)new
+            {
+                name = $"WaterCa7sPcCleaner-{p}.zip",
+                url = Url(version, $"WaterCa7sPcCleaner-{p}.zip"),
+                size,
+                sha256,
+            }),
+        });
+
     /// <summary>A fake "exe" of at least 1 MB (the manifest minimum) filled with <paramref name="fill"/>.</summary>
     public static byte[] FakeZip(byte fill, int extra = 0)
     {

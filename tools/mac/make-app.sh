@@ -1,10 +1,16 @@
 #!/bin/bash
-# Builds "WaterCa7s PC Cleaner.app" and WaterCa7sPcCleaner-osx-arm64.zip in <out-dir> (macOS only):
-#   tools/mac/make-app.sh out
+# Builds "WaterCa7s PC Cleaner.app" and WaterCa7sPcCleaner-<rid>.zip in <out-dir> (macOS only):
+#   tools/mac/make-app.sh out                 Apple Silicon (osx-arm64)
+#   tools/mac/make-app.sh out-x64 osx-x64     Intel Macs
 # Signs with the certificate from MAC_SIGNING_P12 / MAC_SIGNING_PASSWORD when they are set, ad-hoc otherwise (sign.sh).
 set -euo pipefail
 
-out="${1:?usage: make-app.sh <out-dir>}"
+out="${1:?usage: make-app.sh <out-dir> [osx-arm64|osx-x64]}"
+rid="${2:-osx-arm64}"
+if [[ "$rid" != "osx-arm64" && "$rid" != "osx-x64" ]]; then
+  echo "Unknown runtime '$rid' (osx-arm64 or osx-x64)" >&2
+  exit 1
+fi
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 project="$root/src/PcCleaner.Mac/PcCleaner.Mac.csproj"
 version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$project" | head -n 1)"
@@ -17,12 +23,12 @@ mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 publish="$out/publish"
 app="$out/WaterCa7s PC Cleaner.app"
-zip="$out/WaterCa7sPcCleaner-osx-arm64.zip"
+zip="$out/WaterCa7sPcCleaner-$rid.zip"
 rm -rf "$publish" "$app" "$zip"
 
 # Single file: the managed assemblies live inside the executable, so Contents/MacOS holds only Mach-O files
 # (the program and the native Avalonia/Skia/HarfBuzz libraries) — codesign treats every file there as code.
-dotnet publish "$project" -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:DebugType=none -o "$publish"
+dotnet publish "$project" -c Release -r "$rid" --self-contained true -p:PublishSingleFile=true -p:DebugType=none -o "$publish"
 for file in "$publish"/*; do
   if ! file -b "$file" | grep -q 'Mach-O'; then
     echo "Not a Mach-O file in the publish folder (it would break the signature): $file" >&2
@@ -40,5 +46,5 @@ chmod +x "$app/Contents/MacOS/WaterCa7sPcCleaner"
 "$root/tools/mac/sign.sh" "$app"
 
 (cd "$out" && ditto -c -k --keepParent "WaterCa7s PC Cleaner.app" "$(basename "$zip")")
-echo "$app ($version)"
+echo "$app ($version, $rid)"
 echo "$zip ($(du -h "$zip" | cut -f1))"

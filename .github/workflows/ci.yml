@@ -6,8 +6,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macos-14 = the oldest supported macOS (Sonoma), macos-latest = the current one; both Apple Silicon.
-        os: [macos-14, macos-latest]
+        # macos-14 = the oldest supported macOS (Sonoma), macos-latest = the current one (both Apple Silicon),
+        # macos-15-intel = an Intel Mac.
+        os: [macos-14, macos-latest, macos-15-intel]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -24,12 +25,14 @@ jobs:
           MAC_SCREENSHOTS_DIR: ${{ github.workspace }}/demo-screenshots
       - name: Screenshots of this Mac (read-only)
         run: dotnet src/PcCleaner.Mac/bin/Release/net10.0/WaterCa7sPcCleaner.dll --screenshots screenshots
-      - name: Build and sign the .app
+      - name: Build and sign the .app (Apple Silicon and Intel)
         if: matrix.os == 'macos-latest'
         env:
           MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
           MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
-        run: tools/mac/make-app.sh out
+        run: |
+          tools/mac/make-app.sh out
+          tools/mac/make-app.sh out-x64 osx-x64
       - name: Update manifest dry run (throwaway key) and the app's own check of it
         if: matrix.os == 'macos-latest'
         run: |
@@ -39,9 +42,16 @@ jobs:
           openssl ec -in "$RUNNER_TEMP/test-key.pem" -pubout -out "$dir/public.pem"
           echo 'Проверочная сборка CI.' > "$RUNNER_TEMP/notes.md"
           version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/PcCleaner.Mac/PcCleaner.Mac.csproj | head -n 1)"
-          tools/mac/make-update-manifest.sh "$version" out/WaterCa7sPcCleaner-osx-arm64.zip "$RUNNER_TEMP/notes.md" "$RUNNER_TEMP/test-key.pem" "$dir"
+          tools/mac/make-update-manifest.sh "$version" "$RUNNER_TEMP/notes.md" "$RUNNER_TEMP/test-key.pem" "$dir" \
+            out/WaterCa7sPcCleaner-osx-arm64.zip out-x64/WaterCa7sPcCleaner-osx-x64.zip
           UPDATE_MANIFEST_DIR="$dir" dotnet test tests/PcCleaner.Mac.Tests -c Release --no-build --filter "FullyQualifiedName~ScriptManifest"
           rm -f "$RUNNER_TEMP/test-key.pem"
+      - name: The Intel app starts on an Intel Mac (read-only screenshots from the bundle)
+        if: matrix.os == 'macos-15-intel'
+        run: |
+          tools/mac/make-app.sh out-x64 osx-x64
+          "out-x64/WaterCa7s PC Cleaner.app/Contents/MacOS/WaterCa7sPcCleaner" --screenshots intel-app-screenshots
+          ls intel-app-screenshots
       - name: Capture tool output for fixtures (read-only)
         if: always()
         run: tools/mac/capture-fixtures.sh fixtures "out/WaterCa7s PC Cleaner.app"
@@ -52,12 +62,19 @@ jobs:
           archive: false
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
+        if: matrix.os == 'macos-latest'
+        with:
+          path: out-x64/WaterCa7sPcCleaner-osx-x64.zip
+          archive: false
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: mac-screenshots-${{ matrix.os }}
           path: |
             screenshots
             demo-screenshots
+            intel-app-screenshots
       - uses: actions/upload-artifact@v7
         if: always()
         with:

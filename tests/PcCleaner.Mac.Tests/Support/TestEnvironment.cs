@@ -23,5 +23,7 @@ internal static class TestEnvironment
         AppPaths.Home = Path.Combine(Root, "home");
         Directory.CreateDirectory(AppPaths.Home);
         AppPaths.UseRoot(Root);
+        // The updater tests describe an Apple Silicon release; the platform must not follow the machine that runs them.
+        PcCleaner.Core.Updates.UpdateManifest.PlatformOverride = "osx-arm64";
     }
 }

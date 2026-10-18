@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -13,7 +14,12 @@ public sealed record UpdateFile(string Name, string Url, long Size, string Sha25
 /// </summary>
 public sealed record UpdateManifest(Version Version, DateTimeOffset Published, string Notes, UpdateFile Download)
 {
-    public const string Platform = "osx-arm64";
+    /// <summary>The release file this Mac needs: "osx-arm64" (Apple Silicon) or "osx-x64" (Intel, or Rosetta).</summary>
+    public static string Platform => PlatformOverride ?? ForArchitecture(RuntimeInformation.ProcessArchitecture);
+
+    /// <summary>Tests pin the platform so they do not depend on the machine that runs them.</summary>
+    internal static string? PlatformOverride { get; set; }
+
     public const string DownloadPrefix = AppInfo.RepoUrl + "/releases/download/";
     public const long MinSize = 1L << 20;
     public const long MaxSize = 500L << 20;
@@ -22,8 +28,13 @@ public sealed record UpdateManifest(Version Version, DateTimeOffset Published, s
     private static readonly Regex Sha256Hex = new("^[0-9a-f]{64}$", RegexOptions.CultureInvariant);
     private static readonly Regex VersionText = new(@"^\d{1,4}\.\d{1,4}\.\d{1,5}$", RegexOptions.CultureInvariant);
 
-    /// <summary>The manifest, or null with the reason (Russian, for the log) in <paramref name="problem"/>.</summary>
-    public static UpdateManifest? Parse(byte[] json, out string? problem)
+    public static string ForArchitecture(Architecture architecture) => architecture == Architecture.X64 ? "osx-x64" : "osx-arm64";
+
+    /// <summary>The manifest for this Mac's <see cref="Platform"/>, or null with the reason (Russian, for the log).</summary>
+    public static UpdateManifest? Parse(byte[] json, out string? problem) => Parse(json, Platform, out problem);
+
+    /// <summary>The manifest for <paramref name="platform"/>, or null with the reason (Russian, for the log) in <paramref name="problem"/>.</summary>
+    public static UpdateManifest? Parse(byte[] json, string platform, out string? problem)
     {
         Dto? dto;
         try
@@ -45,9 +56,9 @@ public sealed record UpdateManifest(Version Version, DateTimeOffset Published, s
             problem = $"неверная версия «{dto.Version}»";
             return null;
         }
-        if (dto.Files is null || !dto.Files.TryGetValue(Platform, out var file) || file is null)
+        if (dto.Files is null || !dto.Files.TryGetValue(platform, out var file) || file is null)
         {
-            problem = $"в update.json нет файла для {Platform}";
+            problem = $"в update.json нет файла для {platform}";
             return null;
         }
         var name = file.Name ?? "";
