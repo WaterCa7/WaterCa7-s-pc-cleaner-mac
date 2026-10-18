@@ -22,3 +22,6 @@
   обновлений и проверок подписи Apple, в текстах «macOS» вместо «Windows».
 - `Modules/Security/HostsFile.cs` — разбор строк и `SplitLines` из `src/PcCleaner/Modules/Security/HostsFile.cs`
   (`c53ca62`); запись файла на Mac идёт через окно пароля, поэтому вместо `RemoveLines` — `CommentOut` (новый текст).
+- `Modules/Dashboard/ReportBuilder.cs` — из `src/PcCleaner/Modules/Dashboard/ReportBuilder.cs` (`c53ca62`): тексты про Mac,
+  перевод строки `\n`. `Modules/Dashboard/ReportModels.cs` — `ReportModule`, `ReportIssue`, `ReportGroup`,
+  `DashboardReport` из `ReportModels.cs` (`c53ca62`), сведения о компьютере заменены на `ReportMacInfo`.

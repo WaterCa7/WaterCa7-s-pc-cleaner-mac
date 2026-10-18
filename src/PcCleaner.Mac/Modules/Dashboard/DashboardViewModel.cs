@@ -31,7 +31,19 @@ public sealed class DashboardViewModel : PageViewModel
         _navigator = navigator;
         ScanCommand = new AsyncRelayCommand(() => RunBusyAsync("Проверяем Mac…", ScanAsync), () => !IsBusy);
         FixAllCommand = new AsyncRelayCommand(() => RunBusyAsync("Исправляем найденное…", FixAllCoreAsync), () => !IsBusy && FixableCount > 0);
+        SaveReportCommand = new AsyncRelayCommand(SaveReportAsync, () => HasReport);
+        CopyReportCommand = new AsyncRelayCommand(CopyReportAsync, () => HasReport);
     }
+
+    /// <summary>Where reports go: a save dialog and the clipboard of the window (null in tests and screenshots).</summary>
+    public IReportOutput? ReportOutput { get; set; }
+
+    public AsyncRelayCommand SaveReportCommand { get; }
+
+    public AsyncRelayCommand CopyReportCommand { get; }
+
+    /// <summary>A report needs the findings of a scan made in this session.</summary>
+    public bool HasReport => _summaryFromThisSession && _summary is not null;
 
     public override string Title => "Главная";
 
@@ -366,10 +378,58 @@ public sealed class DashboardViewModel : PageViewModel
                  {
                      nameof(HasScan), nameof(Score), nameof(ScoreText), nameof(ScoreValue), nameof(Verdict), nameof(VerdictDescription),
                      nameof(ScoreBrushKey), nameof(FindingsText), nameof(LastScanText), nameof(HasDelta), nameof(DeltaText),
-                     nameof(FixableCount), nameof(HasFixable), nameof(FixAllText), nameof(ScanButtonText),
+                     nameof(FixableCount), nameof(HasFixable), nameof(FixAllText), nameof(ScanButtonText), nameof(HasReport),
                  })
             OnPropertyChanged(name);
         FixAllCommand.RaiseCanExecuteChanged();
+        SaveReportCommand.RaiseCanExecuteChanged();
+        CopyReportCommand.RaiseCanExecuteChanged();
+    }
+
+    /// <summary>Everything the report shows, from the last scan of this session (fix results included).</summary>
+    public DashboardReport BuildReport(DateTime now)
+    {
+        var facts = InfoRows.Select(r => (r.Label, r.Value)).ToList();
+        return new DashboardReport
+        {
+            CreatedAt = now,
+            ScanTime = _summary?.Time ?? now,
+            Score = Score,
+            Delta = _summary?.Delta,
+            Reclaimable = ReclaimableSplit.From(_issues),
+            Pc = new ReportMacInfo { ComputerName = facts.FirstOrDefault(f => f.Label == "Имя Mac").Value ?? "—", Facts = facts },
+            Modules = Modules.Select(ReportModule.From).ToList(),
+            Groups = DashboardReport.GroupIssues(_issues),
+            Warning = ScanWarning,
+            FailedModules = FailedModules,
+        };
+    }
+
+    private async Task SaveReportAsync()
+    {
+        if (ReportOutput is null || !HasReport)
+            return;
+        var now = DateTime.Now;
+        var path = await ReportOutput.PickSavePathAsync(ReportBuilder.DefaultFileName(now));
+        if (path is null)
+            return;
+        try
+        {
+            await File.WriteAllTextAsync(path, ReportBuilder.BuildHtml(BuildReport(now)), new UTF8Encoding(false));
+            Log.Action($"Отчёт сохранён: {path}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.ErrorAsync("Сохранить отчёт", $"Не удалось сохранить отчёт: {ErrorText.For(ex)}");
+        }
+    }
+
+    private async Task CopyReportAsync()
+    {
+        if (ReportOutput is null || !HasReport)
+            return;
+        await ReportOutput.CopyTextAsync(ReportBuilder.BuildText(BuildReport(DateTime.Now)));
+        Log.Action("Отчёт скопирован в буфер обмена");
     }
 
     private static string SafeName(IHealthContributor c)

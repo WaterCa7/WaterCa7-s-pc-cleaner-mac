@@ -30,7 +30,10 @@ public partial class App : Application
             AppServices.Init();
             Log.Info($"{AppInfo.Name} {AppInfo.Version} запущен");
             _main = PageFactory.CreateMain(AppServices.Runner, AppServices.Settings);
-            desktop.MainWindow = new MainWindow { DataContext = _main };
+            var window = new MainWindow { DataContext = _main };
+            foreach (var dashboard in _main.Pages.OfType<Modules.Dashboard.DashboardViewModel>())
+                dashboard.ReportOutput = new WindowReportOutput(window);
+            desktop.MainWindow = window;
         }
         base.OnFrameworkInitializationCompleted();
     }

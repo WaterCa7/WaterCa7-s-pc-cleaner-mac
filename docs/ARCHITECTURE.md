@@ -30,7 +30,7 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 | Cleaner    | Очистка и диски         | 2    | CleanerContributor                          |
 | Processes  | Процессы и автозагрузка | 3    | ProcessesContributor                        |
 | Programs   | Программы               | 4    | ProgramsContributor                         |
-| Security   | Безопасность и сеть     | 5    |                                             |
+| Security   | Безопасность и сеть     | 5    | SecurityContributor                         |
 | Settings   | Настройки               | 1    | —                                           |
 
 Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?, appFolders?)`; разделы, которых ещё нет, —
@@ -138,3 +138,16 @@ tools/mac/make-app.sh out        # только на macOS: .app и zip
 CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, тесты, скриншоты, образцы утилит (артефакты),
 подписанный `.app` в zip. Подпись — самоподписанным сертификатом из секретов `MAC_SIGNING_P12` /
 `MAC_SIGNING_PASSWORD`, без них — ad-hoc.
+
+## Безопасность и сеть
+
+- `SecurityService.CheckAsync` — все проверки таблицы спецификации одним чтением → `SecurityReport` (проверки + сырые
+  факты для исправлений: прокси и DNS по службам, текст hosts, профили); `UpdatesAsync` — `softwareupdate -l` отдельно
+  (до минуты). Утилита не ответила — проверка «нет данных», а не ошибка раздела.
+- `SecurityCheck(Id, Group, Title, Status, Summary, Details, Severity)` + `Fix` (через окно пароля) или `SettingsLink`.
+- `SecurityFixes` — Gatekeeper, брандмауэр, невидимость, прокси, DNS, hosts; прокси/DNS/hosts — после копии в
+  `BackupStore` (`NetworkSettings` — JSON, `HostsFile` — файл), восстановление — `BackupRestorer`.
+- Парсеры: `SecurityParsers`, `NetworkParsers` (+ `DnsRules`), `ProfileParsers`, `HostsFile` + `HostsRules` (адаптированная
+  копия Windows-версии). Имя сети Wi-Fi нигде не сохраняется.
+- Отчёт «Главной»: `ReportBuilder` (адаптированная копия) → HTML (сохранение через окно macOS) и текст (буфер обмена),
+  `IReportOutput` — окно или подставной в тестах.

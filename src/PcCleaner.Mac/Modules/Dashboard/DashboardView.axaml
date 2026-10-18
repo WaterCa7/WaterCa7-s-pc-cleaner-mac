@@ -46,6 +46,13 @@
                   <TextBlock Text="{Binding FixAllText}" />
                 </StackPanel>
               </Button>
+              <Button Command="{Binding SaveReportCommand}" IsVisible="{Binding HasReport}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <PathIcon Width="14" Height="14" Data="{StaticResource Icon.Document}" />
+                  <TextBlock Text="Сохранить отчёт" />
+                </StackPanel>
+              </Button>
+              <Button Classes="GhostButton" Content="Скопировать отчёт" Command="{Binding CopyReportCommand}" IsVisible="{Binding HasReport}" />
             </StackPanel>
           </StackPanel>
         </Grid>
