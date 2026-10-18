@@ -33,8 +33,8 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 | Security   | Безопасность и сеть     | 5    | SecurityContributor                         |
 | Settings   | Настройки               | 1    | —                                           |
 
-Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?, appFolders?)`; разделы, которых ещё нет, —
-`UpcomingPageViewModel`. Новый раздел: сервис + `PageViewModel` + `UserControl` с `x:DataType`, шаблон в
+Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?, appFolders?, securityPaths?)` (необязательные
+параметры — папки и файлы, которые тесты подменяют временными). Новый раздел: сервис + `PageViewModel` + `UserControl` с `x:DataType`, шаблон в
 `App.axaml` (`Application.DataTemplates`), строка в `PageFactory`.
 
 ## Core API (кратко)
