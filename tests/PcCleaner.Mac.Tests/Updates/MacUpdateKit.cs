@@ -32,7 +32,13 @@ internal static class MacUpdateKit
             Dir(zip, root + "/Contents/");
             File(zip, root + "/Contents/Info.plist", InfoPlist(version, id), 0b110_100_100);
             Dir(zip, root + "/Contents/MacOS/");
-            File(zip, root + "/Contents/MacOS/WaterCa7sPcCleaner", new string('x', (1 << 20) + 100), Executable);
+            // Bytes that do not compress: the manifest wants a zip of at least 1 MB.
+            var executable = zip.CreateEntry(root + "/Contents/MacOS/WaterCa7sPcCleaner");
+            executable.ExternalAttributes = (RegularFile | Executable) << 16;
+            var noise = new byte[(1 << 20) + 100];
+            new Random(42).NextBytes(noise);
+            using (var stream = executable.Open())
+                stream.Write(noise);
             File(zip, root + "/Contents/Resources/AppIcon.icns", "icon", 0b110_100_100);
             extra?.Invoke(zip);
         }

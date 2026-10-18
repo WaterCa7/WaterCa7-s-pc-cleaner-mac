@@ -40,13 +40,12 @@ public sealed class UpdateEnvironment
     {
         get
         {
-            var macOs = Path.GetDirectoryName(ExecutablePath);
-            var contents = macOs is null ? null : Path.GetDirectoryName(macOs);
-            var bundle = contents is null ? null : Path.GetDirectoryName(contents);
-            return Path.GetFileName(ExecutablePath) == ExecutableName && Path.GetFileName(macOs) == "MacOS" &&
-                   Path.GetFileName(contents) == "Contents" && bundle is not null && bundle.EndsWith(".app", StringComparison.Ordinal)
-                ? bundle
-                : null;
+            const string tail = "/Contents/MacOS/" + ExecutableName;
+            var path = ExecutablePath.Replace('\\', '/');
+            if (!path.EndsWith(tail, StringComparison.Ordinal))
+                return null;
+            var bundle = ExecutablePath[..^tail.Length];
+            return bundle.EndsWith(".app", StringComparison.Ordinal) ? bundle : null;
         }
     }
 
@@ -79,9 +78,10 @@ public sealed class UpdateEnvironment
         {
             if (AppBundlePath is not { } bundle)
                 return "это сборка для разработки";
-            if (bundle.Contains("/AppTranslocation/", StringComparison.Ordinal))
+            var unix = bundle.Replace('\\', '/');
+            if (unix.Contains("/AppTranslocation/", StringComparison.Ordinal))
                 return "macOS запустила программу из временной копии — перетащите её в папку «Программы» и откройте оттуда";
-            if (bundle.StartsWith("/Volumes/", StringComparison.Ordinal))
+            if (unix.StartsWith("/Volumes/", StringComparison.Ordinal))
                 return "программа запущена с образа диска или флешки — перетащите её в папку «Программы»";
             var parent = Path.GetDirectoryName(bundle)!;
             return CanWrite(parent) ? null : $"нет прав на запись в папку {parent}";

@@ -151,3 +151,18 @@ CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, 
   копия Windows-версии). Имя сети Wi-Fi нигде не сохраняется.
 - Отчёт «Главной»: `ReportBuilder` (адаптированная копия) → HTML (сохранение через окно macOS) и текст (буфер обмена),
   `IReportOutput` — окно или подставной в тестах.
+
+## Автообновление
+
+- `Core/Updates` — перенос схемы Windows 1.1.0: `UpdateManifest` (`osx-arm64`, `.zip`, ссылка только на релиз этой версии
+  этого репозитория), `UpdateSignature` (ECDSA P-256, DER) и `UpdateKeys` (свой ключ Mac; закрытый — только в секрете
+  `UPDATE_SIGNING_KEY` и резервной копии), `UpdateStore` (`Updates/<версия>/`, `state.json`), `UpdateClient` (https,
+  размер и SHA-256 при скачивании), `UpdateService` (состояния, проверка в фоне, установка до окна, `--updated-from`),
+  `UpdateBanner` (полоса в окне).
+- Своё для Mac: `UpdateEnvironment` (путь `.app`, сборка для разработки, AppTranslocation, образ диска, папка без прав
+  записи), `AppZip` (zip читается в память один раз — хэш и распаковка по тем же байтам; только записи внутри
+  `WaterCa7s PC Cleaner.app/`), `BundleInstaller` (`.app.new` → `codesign --verify --deep --strict`, bundle id, версия,
+  требование подписи текущей программы → `.app.old` и замена; откат при сбое), перезапуск `open -n … --args
+  --updated-from <версия>`.
+- `tools/mac/make-update-manifest.sh` пишет и подписывает `update.json`; CI проверяет его тестовым ключом на собранном
+  zip (распаковка + `codesign`). `release.yml` — только после согласия на релиз.

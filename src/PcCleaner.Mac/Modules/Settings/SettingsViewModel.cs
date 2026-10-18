@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using PcCleaner.Core;
+using PcCleaner.Core.Updates;
 using PcCleaner.Modules.Startup;
 
 namespace PcCleaner.Modules.Settings;
@@ -11,12 +12,18 @@ public sealed class SettingsViewModel : PageViewModel
     private readonly Func<FdaState> _checkFda;
     private readonly BackupRestorer? _restorer;
     private FdaState _fda = FdaState.Unknown;
+    private UpdateService? _updates;
+    private AppSettings? _settings;
+    private string _updateStatus = "";
 
     public SettingsViewModel(MacShell shell, Func<FdaState> checkFda, BackupRestorer? restorer = null)
     {
         _shell = shell;
         _checkFda = checkFda;
         _restorer = restorer;
+        CheckUpdatesCommand = new AsyncRelayCommand(() => _updates?.CheckAsync(manual: true, CancellationToken.None) ?? Task.CompletedTask,
+            () => _updates?.CanUpdate == true);
+        OpenReleasesCommand = new AsyncRelayCommand(() => _shell.OpenAsync(UpdateService.ReleasesUrl));
         OpenBackupsCommand = new AsyncRelayCommand(() => _shell.OpenAsync(AppPaths.EnsureDir(_restorer?.Store.Dir ?? AppPaths.BackupsDir)));
         RefreshFdaCommand = new RelayCommand(RefreshFda);
         OpenFdaSettingsCommand = new AsyncRelayCommand(() => _shell.OpenAsync(SystemSettingsLinks.FullDiskAccess));
@@ -86,6 +93,56 @@ public sealed class SettingsViewModel : PageViewModel
     public AsyncRelayCommand OpenLogsCommand { get; }
 
     public AsyncRelayCommand OpenDataCommand { get; }
+
+    // ===== Updates
+
+    /// <summary>The updater and the settings it uses (set by the app; null in tests and the screenshot mode).</summary>
+    public void UseUpdates(UpdateService updates, AppSettings settings)
+    {
+        _updates = updates;
+        _settings = settings;
+        updates.PropertyChanged += (_, _) => Ui.Post(RefreshUpdates);
+        RefreshUpdates();
+    }
+
+    public bool HasUpdates => _updates is not null;
+
+    public bool AutoUpdate
+    {
+        get => _settings?.AutoUpdate ?? false;
+        set
+        {
+            if (_settings is null || _settings.AutoUpdate == value)
+                return;
+            _settings.AutoUpdate = value;
+            _settings.Save();
+            Log.Action(value ? "Автоматические обновления включены" : "Автоматические обновления выключены");
+            OnPropertyChanged();
+        }
+    }
+
+    public string UpdateStatus
+    {
+        get => _updateStatus;
+        private set => Set(ref _updateStatus, value);
+    }
+
+    public AsyncRelayCommand CheckUpdatesCommand { get; }
+
+    public AsyncRelayCommand OpenReleasesCommand { get; }
+
+    private void RefreshUpdates()
+    {
+        if (_updates is null)
+            return;
+        var last = _settings?.LastUpdateCheckUtc is { } time ? "Последняя проверка: " + Modules.Dashboard.HealthScoring.RelativeTime(time.ToLocalTime(), DateTime.Now) + ". " : "";
+        UpdateStatus = !_updates.CanUpdate
+            ? "Эта копия — сборка для разработки, она не обновляется сама."
+            : _updates.StatusText.Length > 0 ? last + _updates.StatusText : last + "Обновления проверяются при запуске программы.";
+        OnPropertyChanged(nameof(HasUpdates));
+        OnPropertyChanged(nameof(AutoUpdate));
+        CheckUpdatesCommand.RaiseCanExecuteChanged();
+    }
 
     public override Task OnNavigatedToAsync()
     {

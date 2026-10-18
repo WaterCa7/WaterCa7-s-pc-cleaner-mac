@@ -30,6 +30,18 @@ jobs:
           MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
           MAC_SIGNING_PASSWORD: ${{ secrets.MAC_SIGNING_PASSWORD }}
         run: tools/mac/make-app.sh out
+      - name: Update manifest dry run (throwaway key) and the app's own check of it
+        if: matrix.os == 'macos-latest'
+        run: |
+          dir="$RUNNER_TEMP/update"
+          mkdir -p "$dir"
+          openssl ecparam -name prime256v1 -genkey -noout | openssl pkcs8 -topk8 -nocrypt -out "$RUNNER_TEMP/test-key.pem"
+          openssl ec -in "$RUNNER_TEMP/test-key.pem" -pubout -out "$dir/public.pem"
+          echo 'Проверочная сборка CI.' > "$RUNNER_TEMP/notes.md"
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/PcCleaner.Mac/PcCleaner.Mac.csproj | head -n 1)"
+          tools/mac/make-update-manifest.sh "$version" out/WaterCa7sPcCleaner-osx-arm64.zip "$RUNNER_TEMP/notes.md" "$RUNNER_TEMP/test-key.pem" "$dir"
+          UPDATE_MANIFEST_DIR="$dir" dotnet test tests/PcCleaner.Mac.Tests -c Release --no-build --filter "FullyQualifiedName~ScriptManifest"
+          rm -f "$RUNNER_TEMP/test-key.pem"
       - name: Capture tool output for fixtures (read-only)
         if: always()
         run: tools/mac/capture-fixtures.sh fixtures "out/WaterCa7s PC Cleaner.app"

@@ -47,14 +47,28 @@
     </Border>
 
     <!-- ===== Content ===== -->
-    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto">
+    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*,Auto">
       <StackPanel Margin="32,24,32,10">
         <TextBlock Classes="H1" Text="{Binding SelectedPage.Title}" />
         <TextBlock Classes="Muted" FontSize="13" Margin="0,4,0,0" Text="{Binding SelectedPage.Subtitle}" />
       </StackPanel>
 
+      <!-- Update strip: a downloaded version, the version just installed, or a manual download. -->
+      <Border Grid.Row="1" Margin="32,0,32,8" Padding="12,8" CornerRadius="8" Background="{StaticResource AccentSoftBrush}"
+              IsVisible="{Binding ShowUpdateBanner}">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+          <PathIcon Width="16" Height="16" Margin="0,0,10,0" VerticalAlignment="Center" Data="{StaticResource Icon.Download}"
+                    Foreground="{StaticResource AccentBrush}" />
+          <TextBlock Grid.Column="1" Text="{Binding UpdateBannerText}" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="13" />
+          <Button Grid.Column="2" Classes="AccentButton" Content="{Binding UpdateBannerAction}" Command="{Binding UpdateBannerCommand}"
+                  Margin="12,0,0,0" Padding="12,5" />
+          <Button Grid.Column="3" Classes="GhostButton" Content="✕" Command="{Binding DismissUpdateBannerCommand}" Margin="6,0,0,0" Padding="8,5"
+                  ToolTip.Tip="Скрыть" />
+        </Grid>
+      </Border>
+
       <!-- Shared busy strip of the current page. -->
-      <Border Grid.Row="1" Margin="32,0,32,8" Classes="InnerCard" Padding="12,8" IsVisible="{Binding SelectedPage.IsBusy}">
+      <Border Grid.Row="2" Margin="32,0,32,8" Classes="InnerCard" Padding="12,8" IsVisible="{Binding SelectedPage.IsBusy}">
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="{Binding SelectedPage.BusyText}" FontSize="12.5" Margin="0,0,0,6" TextTrimming="CharacterEllipsis" />
@@ -65,9 +79,9 @@
         </Grid>
       </Border>
 
-      <ContentControl Grid.Row="2" Margin="32,4,24,16" Content="{Binding SelectedPage}" />
+      <ContentControl Grid.Row="3" Margin="32,4,24,16" Content="{Binding SelectedPage}" />
 
-      <Border Grid.Row="3" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="32,7">
+      <Border Grid.Row="4" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="32,7">
         <DockPanel>
           <TextBlock DockPanel.Dock="Right" Classes="Muted" FontSize="11.5" TextWrapping="NoWrap">
             <Run Text="{Binding VersionText}" /><Run Text=" · Сделано для WaterCa7" />

@@ -52,6 +52,21 @@ public class UpdateSignatureTests
         var manifest = UpdateManifest.Parse(json, out var problem);
         Assert.True(manifest is not null, problem);
         Assert.False(string.IsNullOrWhiteSpace(manifest!.Notes));
+        Assert.Equal(PcCleaner.Core.AppInfo.Version, manifest.Version.ToString(3));
+    }
+
+    /// <summary>The real zip of the build unpacks with the app's own unpacker and passes the install checks (macOS: codesign).</summary>
+    [ManifestDirFact]
+    public async Task ScriptManifest_ZipUnpacksAndVerifies()
+    {
+        var dir = Environment.GetEnvironmentVariable(ManifestDirFactAttribute.Variable)!;
+        var manifest = UpdateManifest.Parse(File.ReadAllBytes(Path.Combine(dir, "update.json")), out var problem)!;
+        Assert.True(manifest is not null, problem);
+        using var temp = new TempDir();
+        var app = Path.Combine(temp.Path, AppZip.BundleName);
+        AppZip.Extract(Path.Combine(dir, manifest.Download.Name), manifest.Download, app);
+        if (OperatingSystem.IsMacOS())
+            await new BundleInstaller(new PcCleaner.Core.ProcessCommandRunner()).VerifyAsync(app, manifest.Version, app, CancellationToken.None);
     }
 
     private static string Normalize(string pem) => string.Join("\n", pem.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0));
