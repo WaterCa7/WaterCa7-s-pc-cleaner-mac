@@ -46,6 +46,7 @@ public class ProcessesContributorTests
         Assert.Equal((IssueSeverity.High, "Подозрительный процесс «agent»", (object?)null), (issue.Severity, issue.Title, issue.FixAsync));
         Assert.StartsWith("Запущена из временной папки. Путь: /private/tmp/x/agent.", issue.Details, StringComparison.Ordinal);
         Assert.Equal("Processes", issue.TargetPageKey);
+        Assert.Contains("разделе «Процессы»", issue.Details, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -53,6 +54,8 @@ public class ProcessesContributorTests
     {
         var issue = Assert.Single(Evaluate(Array.Empty<ProcessEntry>(), Entry("com.example.strong", target: "/Users/Shared/a", hints: new[] { Strong })));
         Assert.Equal((IssueSeverity.High, false), (issue.Severity, issue.AutoFixSafe));
+        Assert.Equal("Startup", issue.TargetPageKey);
+        Assert.Contains("разделе «Автозагрузка»", issue.Details, StringComparison.Ordinal);
         Assert.Equal("«com.example.strong» отключена.", await issue.FixAsync!(CancellationToken.None));
         Assert.Contains("com.example.strong", Disabled);
     }
@@ -71,6 +74,7 @@ public class ProcessesContributorTests
         Assert.All(issues, i => Assert.Equal(IssueSeverity.Medium, i.Severity));
         Assert.Equal(new[] { true, true, false }, issues.Select(i => i.AutoFixSafe));
         Assert.Null(issues[2].FixAsync);
+        Assert.All(issues, i => Assert.Equal("Startup", i.TargetPageKey));
     }
 
     [Fact]
@@ -82,6 +86,7 @@ public class ProcessesContributorTests
             Entry("com.example.signed", target: "/Users/anna/Applications/Sync.app/Contents/MacOS/Sync", signature: new SignatureInfo(SignatureKind.DeveloperId)));
         var issue = Assert.Single(issues);
         Assert.Equal((IssueSeverity.Medium, "Запись автозагрузки без подписи разработчика: «com.example.mine»"), (issue.Severity, issue.Title));
+        Assert.Equal("Startup", issue.TargetPageKey);
     }
 
     [Fact]
@@ -91,6 +96,7 @@ public class ProcessesContributorTests
         many.Add(Entry("com.apple.x", LaunchSource.Apple));
         var tip = Assert.Single(Evaluate(Array.Empty<ProcessEntry>(), many.ToArray()));
         Assert.Equal((IssueSeverity.Info, "В автозагрузке 16 сторонних записей"), (tip.Severity, tip.Title));
+        Assert.Equal("Startup", tip.TargetPageKey);
         Assert.Empty(Evaluate(Array.Empty<ProcessEntry>(), many.Skip(1).ToArray()));
     }
 

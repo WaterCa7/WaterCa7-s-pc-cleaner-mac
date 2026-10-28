@@ -8,11 +8,12 @@ public static class ProcessesRules
 {
     public const string ModuleName = "Процессы и автозагрузка";
     public const string PageKey = "Processes";
+    public const string StartupPageKey = "Startup";
 
     /// <summary>More third-party startup items than this is worth a look.</summary>
     public const int ManyThirdParty = 15;
 
-    private const string NotAVirus = "Это не обязательно вирус: проверьте программу в разделе «Процессы и автозагрузка» (поиск в интернете, VirusTotal).";
+    private static string NotAVirus(string page) => $"Это не обязательно вирус: проверьте программу в разделе «{page}» (поиск в интернете, VirusTotal).";
 
     /// <param name="home">The user's home folder (unsigned programs there are worth a look).</param>
     /// <param name="disable">Disables a startup item (the fix; reversible, with a backup).</param>
@@ -29,7 +30,7 @@ public static class ProcessesRules
             {
                 Module = ModuleName,
                 Title = $"Подозрительный процесс «{first.Info.Name}»",
-                Details = $"{Reasons(first.Hints)}. Путь: {first.Info.Executable}. {NotAVirus}",
+                Details = $"{Reasons(first.Hints)}. Путь: {first.Info.Executable}. {NotAVirus("Процессы")}",
                 Severity = IssueSeverity.High,
                 TargetPageKey = PageKey,
             });
@@ -44,10 +45,10 @@ public static class ProcessesRules
                 {
                     Module = ModuleName,
                     Title = $"Подозрительная запись автозагрузки «{entry.Label}»",
-                    Details = $"{Reasons(entry.Hints)}. Запускает: {entry.CommandLine}. {NotAVirus} «Исправить» отключит запись — это обратимо.",
+                    Details = $"{Reasons(entry.Hints)}. Запускает: {entry.CommandLine}. {NotAVirus("Автозагрузка")} «Исправить» отключит запись — это обратимо.",
                     Severity = IssueSeverity.High,
                     FixAsync = entry.HasLabel ? ct => disable(entry, ct) : null,
-                    TargetPageKey = PageKey,
+                    TargetPageKey = StartupPageKey,
                 });
             }
             else if (entry.IsBroken && entry.Source is LaunchSource.UserAgent or LaunchSource.GlobalAgent)
@@ -57,11 +58,11 @@ public static class ProcessesRules
                     Module = ModuleName,
                     Title = $"Сломанная запись автозагрузки «{entry.Label}»",
                     Details = $"Причина: {entry.Problem}. Обычно это остаток удалённой программы: macOS пытается её запустить и пишет ошибки в журнал. " +
-                              (entry.HasLabel ? "«Исправить» отключит запись (копия сохранится)." : "Её можно удалить в разделе «Процессы и автозагрузка»."),
+                              (entry.HasLabel ? "«Исправить» отключит запись (копия сохранится)." : "Её можно удалить в разделе «Автозагрузка»."),
                     Severity = IssueSeverity.Medium,
                     FixAsync = entry.HasLabel ? ct => disable(entry, ct) : null,
                     AutoFixSafe = entry.HasLabel,
-                    TargetPageKey = PageKey,
+                    TargetPageKey = StartupPageKey,
                 });
             }
             else if (!entry.IsBroken && entry.Signature?.Kind is SignatureKind.Unsigned or SignatureKind.AdHoc
@@ -74,7 +75,7 @@ public static class ProcessesRules
                     Details = $"Программа {entry.Target} лежит в вашей папке и не подписана разработчиком — так бывает у самодельных скриптов и " +
                               "инструментов разработки, но и у нежелательных программ. Если вы её не узнаёте, отключите запись.",
                     Severity = IssueSeverity.Medium,
-                    TargetPageKey = PageKey,
+                    TargetPageKey = StartupPageKey,
                 });
             }
         }
@@ -86,9 +87,9 @@ public static class ProcessesRules
             {
                 Module = ModuleName,
                 Title = $"В автозагрузке {thirdParty} {Format.Plural(thirdParty, "сторонняя запись", "сторонние записи", "сторонних записей")}",
-                Details = "Каждая запускается вместе с Mac и работает в фоне. Отключите те, что вам не нужны, в разделе «Процессы и автозагрузка».",
+                Details = "Каждая запускается вместе с Mac и работает в фоне. Отключите те, что вам не нужны, в разделе «Автозагрузка».",
                 Severity = IssueSeverity.Info,
-                TargetPageKey = PageKey,
+                TargetPageKey = StartupPageKey,
             });
         }
         return issues;

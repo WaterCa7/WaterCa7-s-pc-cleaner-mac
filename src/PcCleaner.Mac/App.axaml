@@ -43,6 +43,9 @@
     <DataTemplate DataType="processes:ProcessesViewModel">
       <processes:ProcessesView />
     </DataTemplate>
+    <DataTemplate DataType="processes:StartupViewModel">
+      <processes:StartupView />
+    </DataTemplate>
     <DataTemplate DataType="programs:ProgramsViewModel">
       <programs:ProgramsView />
     </DataTemplate>

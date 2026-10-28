@@ -11,7 +11,7 @@ using Xunit;
 
 namespace PcCleaner.Mac.Tests.Ui;
 
-/// <summary>«Процессы и автозагрузка» in the window, on processes and startup items from the CI machines and hand-made odd ones.</summary>
+/// <summary>«Процессы» and «Автозагрузка» in the window, on processes and startup items from the CI machines and hand-made odd ones.</summary>
 [Collection(UiCollection.Name)]
 public class ProcessesPageTests
 {
@@ -21,34 +21,50 @@ public class ProcessesPageTests
             : Path.Combine(TestEnvironment.Root, "shots-processes");
 
     [AvaloniaFact]
-    public async Task BothTabs_Render()
+    public async Task ProcessesPage_Renders()
     {
-        using var page = new ProcessesViewModelTests.Page();
+        var page = new ProcessesViewModelTests.Page();
         var main = new MainViewModel(new PageViewModel[] { page.Vm });
         using var shown = new WindowTests.ShownWindow(main);
         var window = shown.Window;
         window.Width = 1100;
         window.Height = 720;
+        main.NavigateTo("Processes");
         await page.Vm.OnNavigatedToAsync();
         page.Vm.Selected = page.Vm.Processes.Single(r => r.Name == "updater");
         Dispatcher.UIThread.RunJobs();
 
         var texts = WindowTests.Texts(window);
-        Assert.Contains("Процессы и автозагрузка", texts);
         Assert.Contains("MacKeeper", texts);
         Assert.Contains("/private/tmp/.x/updater", texts);
         Assert.Contains("запущена из временной папки", texts);
+        Assert.Empty(window.GetVisualDescendants().OfType<TabControl>());
         Directory.CreateDirectory(ShotsDir());
         window.CaptureRenderedFrame()!.Save(Path.Combine(ShotsDir(), "03-Processes.png"), new PngBitmapEncoderOptions());
+    }
 
-        window.GetVisualDescendants().OfType<TabControl>().First().SelectedIndex = 1;
+    [AvaloniaFact]
+    public async Task StartupPage_Renders()
+    {
+        using var page = new StartupViewModelTests.Page();
+        var main = new MainViewModel(new PageViewModel[] { page.Vm });
+        using var shown = new WindowTests.ShownWindow(main);
+        var window = shown.Window;
+        window.Width = 1100;
+        window.Height = 720;
+        main.NavigateTo("Startup");
+        await page.Vm.OnNavigatedToAsync();
         await page.Vm.LoadLoginItemsCommand.ExecuteAsync();
         Dispatcher.UIThread.RunJobs();
-        texts = WindowTests.Texts(window);
+
+        var texts = WindowTests.Texts(window);
         Assert.Contains("Ваши агенты (6)", texts);
         Assert.Contains("Сломана: программа не найдена: /Users/anna/missing/tool", texts);
         Assert.Contains("называется как служба Apple, но программа не от Apple", texts);
         Assert.Contains("Работает (PID 945)", texts);
+        Assert.Contains("Музыка", texts);
+        Assert.Empty(window.GetVisualDescendants().OfType<TabControl>());
+        Directory.CreateDirectory(ShotsDir());
         window.CaptureRenderedFrame()!.Save(Path.Combine(ShotsDir(), "03-Processes-startup.png"), new PngBitmapEncoderOptions());
     }
 }

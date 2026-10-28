@@ -16,188 +16,77 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <TabControl>
+  <Grid RowDefinitions="Auto,Auto,*" Margin="0,4,8,8">
 
-    <!-- ===================== Процессы ===================== -->
-    <TabItem Header="Процессы">
-      <Grid RowDefinitions="Auto,Auto,*" Margin="0,12,8,8">
+    <Border Classes="Card">
+      <StackPanel Spacing="10">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Content="Обновить" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding SortChoices}" SelectedItem="{Binding Sort}" MinWidth="130" Margin="12,0,0,0" />
+          <CheckBox DockPanel.Dock="Right" Content="Скрыть системные" IsChecked="{Binding HideSystem}" Margin="12,0,0,0" />
+          <TextBox Text="{Binding SearchText}" PlaceholderText="Поиск по имени или пути" />
+        </DockPanel>
+        <TextBlock Classes="Muted" Text="{Binding ProcessSummary}" />
+      </StackPanel>
+    </Border>
 
-        <Border Classes="Card">
-          <StackPanel Spacing="10">
-            <DockPanel>
-              <Button DockPanel.Dock="Right" Content="Обновить" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
-              <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding SortChoices}" SelectedItem="{Binding Sort}" MinWidth="130" Margin="12,0,0,0" />
-              <CheckBox DockPanel.Dock="Right" Content="Скрыть системные" IsChecked="{Binding HideSystem}" Margin="12,0,0,0" />
-              <TextBox Text="{Binding SearchText}" PlaceholderText="Поиск по имени или пути" />
-            </DockPanel>
-            <TextBlock Classes="Muted" Text="{Binding ProcessSummary}" />
-          </StackPanel>
-        </Border>
+    <Border Grid.Row="1" Padding="12,9" Margin="0,12,0,0" CornerRadius="8" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding HasLastResult}">
+      <DockPanel>
+        <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Margin="0,1,10,0" VerticalAlignment="Top"
+                  Data="{StaticResource Icon.Checkmark}" Foreground="{StaticResource AccentBrush}" />
+        <TextBlock Text="{Binding LastResult}" TextWrapping="Wrap" />
+      </DockPanel>
+    </Border>
 
-        <Border Grid.Row="1" Padding="12,9" Margin="0,12,0,0" CornerRadius="8" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding HasLastResult}">
-          <DockPanel>
-            <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Margin="0,1,10,0" VerticalAlignment="Top"
-                      Data="{StaticResource Icon.Checkmark}" Foreground="{StaticResource AccentBrush}" />
-            <TextBlock Text="{Binding LastResult}" TextWrapping="Wrap" />
-          </DockPanel>
-        </Border>
-
-        <Grid Grid.Row="2" ColumnDefinitions="*,340" Margin="0,12,0,0">
-          <Border Classes="Card" Padding="6">
-            <Grid RowDefinitions="Auto,*">
-              <Grid ColumnDefinitions="22,*,64,90" Margin="10,4,24,6">
-                <TextBlock Grid.Column="1" Classes="Muted" Text="Программа" />
-                <TextBlock Grid.Column="2" Classes="Muted" Text="ЦП" HorizontalAlignment="Right" />
-                <TextBlock Grid.Column="3" Classes="Muted" Text="Память" HorizontalAlignment="Right" />
-              </Grid>
-              <ListBox Grid.Row="1" Classes="Plain" ItemsSource="{Binding Processes}" SelectedItem="{Binding Selected}">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:ProcessRow">
-                    <Grid ColumnDefinitions="22,*,64,90" Margin="0,0,14,0">
-                      <PathIcon Width="14" Height="14" VerticalAlignment="Center" HorizontalAlignment="Left" Data="{StaticResource Icon.Warning}"
-                                Foreground="{StaticResource WarningBrush}" IsVisible="{Binding HasStrongHint}" />
-                      <StackPanel Grid.Column="1">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Classes="Muted" Text="{Binding PathText}" FontSize="11.5" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                      </StackPanel>
-                      <TextBlock Grid.Column="2" Text="{Binding CpuText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                      <TextBlock Grid.Column="3" Text="{Binding MemoryText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                    </Grid>
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-            </Grid>
-          </Border>
-
-          <Border Grid.Column="1" Classes="Card" Margin="12,0,0,0" VerticalAlignment="Top">
-            <Panel>
-              <TextBlock Classes="Muted" Text="Выберите процесс, чтобы увидеть, откуда он запущен и кем подписан." IsVisible="{Binding NoSelection}" />
-              <StackPanel Spacing="8" IsVisible="{Binding HasSelection}">
-                <TextBlock Classes="H3" Text="{Binding Selected.Name}" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding Selected.PathText}" TextWrapping="Wrap" FontSize="12.5" />
-                <TextBlock Classes="Muted" Text="{Binding Selected.DetailsText}" />
-                <TextBlock Classes="Muted" Text="{Binding Selected.SignatureText}" />
-                <ItemsControl ItemsSource="{Binding Selected.Hints}" ItemTemplate="{StaticResource HintTemplate}" IsVisible="{Binding Selected.HasHints}" />
-                <TextBlock Classes="Muted" Text="{Binding Selected.CommandLine}" FontSize="11.5" TextWrapping="Wrap" MaxHeight="80" />
-                <TextBlock Classes="Muted" Text="{Binding Selected.ProtectedText}" IsVisible="{Binding Selected.IsProtected}" />
-                <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
-                  <Button Classes="DangerButton" Content="Завершить" Command="{Binding TerminateCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.CanTerminate}" />
-                  <Button Content="Показать в Finder" Command="{Binding RevealProcessCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.HasLocation}" />
-                  <Button Content="Найти в интернете" Command="{Binding SearchWebCommand}" Margin="0,0,8,8" />
-                  <Button Content="VirusTotal" Command="{Binding VirusTotalCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.CanHash}" />
-                </WrapPanel>
-                <TextBlock Classes="Muted" FontSize="11.5" TextWrapping="Wrap"
-                           Text="VirusTotal откроется по отпечатку файла (SHA-256) — сам файл никуда не отправляется." />
-              </StackPanel>
-            </Panel>
-          </Border>
-        </Grid>
-      </Grid>
-    </TabItem>
-
-    <!-- ===================== Автозагрузка ===================== -->
-    <TabItem Header="Автозагрузка">
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="14" Margin="0,12,8,8">
-
-          <Border Classes="Card">
-            <DockPanel>
-              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="16,0,0,0">
-                <CheckBox Content="Показать записи macOS" IsChecked="{Binding ShowApple}" IsEnabled="{Binding !IsBusy}" />
-                <Button Content="Обновить" Command="{Binding RefreshCommand}" />
-              </StackPanel>
-              <StackPanel Spacing="4">
-                <TextBlock Classes="H3" Text="Что запускается вместе с Mac" />
-                <TextBlock Classes="Muted" TextWrapping="Wrap"
-                           Text="Службы launchd: агенты запускаются при вашем входе, системные службы — при включении Mac. Отключение обратимо, перед каждым изменением сохраняется копия." />
-              </StackPanel>
-            </DockPanel>
-          </Border>
-
-          <Border Padding="12,9" CornerRadius="8" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding HasLastResult}">
-            <DockPanel>
-              <PathIcon DockPanel.Dock="Left" Width="16" Height="16" Margin="0,1,10,0" VerticalAlignment="Top"
-                        Data="{StaticResource Icon.Checkmark}" Foreground="{StaticResource AccentBrush}" />
-              <TextBlock Text="{Binding LastResult}" TextWrapping="Wrap" />
-            </DockPanel>
-          </Border>
-
-          <TextBlock Classes="Muted" Text="{Binding StartupProblems}" IsVisible="{Binding HasStartupProblems}" TextWrapping="Wrap" />
-
-          <ItemsControl ItemsSource="{Binding StartupGroups}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:StartupGroup">
-                <StackPanel Spacing="8" Margin="0,0,0,16">
-                  <TextBlock Classes="H3" Text="{Binding Title}" />
-                  <TextBlock Classes="Muted" Text="{Binding Hint}" TextWrapping="Wrap" />
-                  <ItemsControl ItemsSource="{Binding Rows}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:StartupRow">
-                        <Border Classes="Card" Margin="0,0,0,8">
-                          <DockPanel>
-                            <StackPanel DockPanel.Dock="Right" Spacing="8" Margin="16,0,0,0" MinWidth="150">
-                              <Button Content="{Binding ToggleText}" Command="{Binding ToggleCommand}" IsVisible="{Binding CanToggle}" HorizontalAlignment="Stretch" />
-                              <Button Classes="DangerButton" Content="Удалить" Command="{Binding RemoveCommand}" IsVisible="{Binding CanRemove}" HorizontalAlignment="Stretch" />
-                              <Button Classes="GhostButton" Content="Показать в Finder" Command="{Binding RevealCommand}" IsVisible="{Binding HasPlist}" HorizontalAlignment="Stretch" />
-                            </StackPanel>
-                            <StackPanel Spacing="4">
-                              <DockPanel>
-                                <PathIcon DockPanel.Dock="Left" Width="14" Height="14" Margin="0,0,8,0" Data="{StaticResource Icon.Warning}"
-                                          Foreground="{StaticResource WarningBrush}" IsVisible="{Binding HasStrongHint}" />
-                                <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
-                              </DockPanel>
-                              <TextBlock Text="{Binding StateText}" FontSize="12.5" />
-                              <TextBlock Classes="Muted" Text="{Binding ProgramText}" FontSize="12" TextWrapping="Wrap" />
-                              <TextBlock Classes="Muted" Text="{Binding SignatureText}" IsVisible="{Binding HasSignature}" />
-                              <TextBlock Text="{Binding ProblemText}" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" IsVisible="{Binding IsBroken}" />
-                              <ItemsControl ItemsSource="{Binding Hints}" ItemTemplate="{StaticResource HintTemplate}" IsVisible="{Binding HasHints}" />
-                            </StackPanel>
-                          </DockPanel>
-                        </Border>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </StackPanel>
+    <Grid Grid.Row="2" ColumnDefinitions="*,340" Margin="0,12,0,0">
+      <Border Classes="Card" Padding="6">
+        <Grid RowDefinitions="Auto,*">
+          <Grid ColumnDefinitions="22,*,64,90" Margin="10,4,24,6">
+            <TextBlock Grid.Column="1" Classes="Muted" Text="Программа" />
+            <TextBlock Grid.Column="2" Classes="Muted" Text="ЦП" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="3" Classes="Muted" Text="Память" HorizontalAlignment="Right" />
+          </Grid>
+          <ListBox Grid.Row="1" Classes="Plain" ItemsSource="{Binding Processes}" SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ProcessRow">
+                <Grid ColumnDefinitions="22,*,64,90" Margin="0,0,14,0">
+                  <PathIcon Width="14" Height="14" VerticalAlignment="Center" HorizontalAlignment="Left" Data="{StaticResource Icon.Warning}"
+                            Foreground="{StaticResource WarningBrush}" IsVisible="{Binding HasStrongHint}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="Muted" Text="{Binding PathText}" FontSize="11.5" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding CpuText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding MemoryText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
               </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
 
-          <!-- ===== Объекты входа ===== -->
-          <Border Classes="Card">
-            <StackPanel Spacing="10">
-              <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0" VerticalAlignment="Top">
-                  <Button Content="Показать объекты входа" Command="{Binding LoadLoginItemsCommand}" />
-                  <Button Content="Объекты входа в настройках" Command="{Binding OpenLoginItemsSettingsCommand}" />
-                </StackPanel>
-                <StackPanel Spacing="4">
-                  <TextBlock Classes="H3" Text="Объекты входа" />
-                  <TextBlock Classes="Muted" TextWrapping="Wrap"
-                             Text="Программы, которые открываются при входе. Чтобы их прочитать, macOS один раз спросит разрешение управлять «System Events»." />
-                </StackPanel>
-              </DockPanel>
-              <TextBlock Text="{Binding LoginItemsStatus}" TextWrapping="Wrap" IsVisible="{Binding HasLoginItemsStatus}" />
-              <Button Content="Открыть настройки «Автоматизация»" Command="{Binding OpenAutomationSettingsCommand}"
-                      IsVisible="{Binding LoginItemsNeedPermission}" HorizontalAlignment="Left" />
-              <ItemsControl ItemsSource="{Binding LoginItems}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:LoginItemRow">
-                    <Border Classes="InnerCard" Margin="0,0,0,6">
-                      <DockPanel>
-                        <Button DockPanel.Dock="Right" Content="Убрать" Command="{Binding RemoveCommand}" Margin="12,0,0,0" VerticalAlignment="Center" />
-                        <StackPanel>
-                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                          <TextBlock Classes="Muted" Text="{Binding PathText}" FontSize="12" TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-                      </DockPanel>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </Border>
-        </StackPanel>
-      </ScrollViewer>
-    </TabItem>
-  </TabControl>
+      <Border Grid.Column="1" Classes="Card" Margin="12,0,0,0" VerticalAlignment="Top">
+        <Panel>
+          <TextBlock Classes="Muted" Text="Выберите процесс, чтобы увидеть, откуда он запущен и кем подписан." IsVisible="{Binding NoSelection}" />
+          <StackPanel Spacing="8" IsVisible="{Binding HasSelection}">
+            <TextBlock Classes="H3" Text="{Binding Selected.Name}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Selected.PathText}" TextWrapping="Wrap" FontSize="12.5" />
+            <TextBlock Classes="Muted" Text="{Binding Selected.DetailsText}" />
+            <TextBlock Classes="Muted" Text="{Binding Selected.SignatureText}" />
+            <ItemsControl ItemsSource="{Binding Selected.Hints}" ItemTemplate="{StaticResource HintTemplate}" IsVisible="{Binding Selected.HasHints}" />
+            <TextBlock Classes="Muted" Text="{Binding Selected.CommandLine}" FontSize="11.5" TextWrapping="Wrap" MaxHeight="80" />
+            <TextBlock Classes="Muted" Text="{Binding Selected.ProtectedText}" IsVisible="{Binding Selected.IsProtected}" />
+            <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
+              <Button Classes="DangerButton" Content="Завершить" Command="{Binding TerminateCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.CanTerminate}" />
+              <Button Content="Показать в Finder" Command="{Binding RevealProcessCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.HasLocation}" />
+              <Button Content="Найти в интернете" Command="{Binding SearchWebCommand}" Margin="0,0,8,8" />
+              <Button Content="VirusTotal" Command="{Binding VirusTotalCommand}" Margin="0,0,8,8" IsVisible="{Binding Selected.CanHash}" />
+            </WrapPanel>
+            <TextBlock Classes="Muted" FontSize="11.5" TextWrapping="Wrap"
+                       Text="VirusTotal откроется по отпечатку файла (SHA-256) — сам файл никуда не отправляется." />
+          </StackPanel>
+        </Panel>
+      </Border>
+    </Grid>
+  </Grid>
 </UserControl>
