@@ -2,19 +2,24 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using PcCleaner.Core;
 using PcCleaner.Core.Updates;
+using PcCleaner.Shell;
 
 namespace PcCleaner;
 
-/// <summary>The window: the page list, navigation, the update strip and the bottom line.</summary>
+/// <summary>The window: the sections of the sidebar and their tabs, navigation, the update strip and the bottom line.</summary>
 public sealed class MainViewModel : ObservableObject, INavigator
 {
     private PageViewModel? _selectedPage;
+    private SectionViewModel? _selectedSection;
     private UpdateService? _updates;
     private bool _updateBannerDismissed;
 
     public MainViewModel(IReadOnlyList<PageViewModel> pages)
     {
         Pages = new ObservableCollection<PageViewModel>(pages);
+        Sections = ShellMenu.Build(Pages);
+        TopSections = Sections.Where(s => s.Place == SectionPlace.Top).ToList();
+        BottomSections = Sections.Where(s => s.Place == SectionPlace.Bottom).ToList();
         UpdateBannerCommand = new AsyncRelayCommand(RunUpdateBannerActionAsync);
         DismissUpdateBannerCommand = new RelayCommand(() =>
         {
@@ -105,6 +110,41 @@ public sealed class MainViewModel : ObservableObject, INavigator
         }
     }
 
+    /// <summary>Every section of the menu (<see cref="ShellMenu"/>); a section's tabs are pages of <see cref="Pages"/>.</summary>
+    public IReadOnlyList<SectionViewModel> Sections { get; }
+
+    /// <summary>The main list of the sidebar.</summary>
+    public IReadOnlyList<SectionViewModel> TopSections { get; }
+
+    /// <summary>The list at the bottom of the sidebar (Профиль, Настройки).</summary>
+    public IReadOnlyList<SectionViewModel> BottomSections { get; }
+
+    /// <summary>The section of the open page.</summary>
+    public SectionViewModel? SelectedSection => _selectedSection;
+
+    /// <summary>The selection of the main list (null while a bottom section is open); a write opens the section, null is ignored.</summary>
+    public SectionViewModel? SelectedTopSection
+    {
+        get => SelectedSection is { Place: SectionPlace.Top } s ? s : null;
+        set => Open(value);
+    }
+
+    /// <summary>The selection of the bottom list; see <see cref="SelectedTopSection"/>.</summary>
+    public SectionViewModel? SelectedBottomSection
+    {
+        get => SelectedSection is { Place: SectionPlace.Bottom } s ? s : null;
+        set => Open(value);
+    }
+
+    /// <summary>The title above the page: the section when it has tabs, else the page itself.</summary>
+    public string HeaderTitle => SelectedSection is { ShowTabs: true } s ? s.Title : _selectedPage?.Title ?? "";
+
+    private void Open(SectionViewModel? section)
+    {
+        if (section is not null && !ReferenceEquals(section.EntryTab, _selectedPage))
+            SelectedPage = section.EntryTab;
+    }
+
     /// <summary>The corner of the bottom line: «v1.2.0 · последняя версия» (<see cref="UpdateFooter"/>); the version alone without an updater.</summary>
     public string FooterText => Updates is null ? "v" + AppInfo.Version : UpdateFooter.Text(Updates.State, Updates.Manifest, Updates.CurrentVersion);
 
@@ -118,7 +158,20 @@ public sealed class MainViewModel : ObservableObject, INavigator
     private async Task NavigateAsync(PageViewModel page)
     {
         _selectedPage?.OnNavigatedFrom();
+        var section = Sections.FirstOrDefault(s => s.Contains(page));
+        section?.Remember(page);
+        // The section first, while the old page is still open: the tab strip swaps its tabs, clears its selection and writes null back
+        // (SelectedPage ignores it). Then the new page, one of the new tabs, becomes the strip's selection. With the page switched
+        // before the section, the strip was left without a selection (window test ASectionWithTabs_ShowsTheStrip…).
+        if (!ReferenceEquals(section, _selectedSection))
+        {
+            _selectedSection = section;
+            OnPropertyChanged(nameof(SelectedSection));
+            OnPropertyChanged(nameof(SelectedTopSection));
+            OnPropertyChanged(nameof(SelectedBottomSection));
+        }
         _selectedPage = page;
+        OnPropertyChanged(nameof(HeaderTitle));
         OnPropertyChanged(nameof(SelectedPage));
         try
         {

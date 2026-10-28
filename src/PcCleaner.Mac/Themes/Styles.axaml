@@ -166,6 +166,31 @@
     <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
   </Style>
 
+  <!-- ===== Tab strip of a section (MainWindow) ===== -->
+  <Style Selector="ListBox.Tabs">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="ListBox.Tabs ListBoxItem">
+    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="Margin" Value="0,0,4,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ListBox.Tabs ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+  </Style>
+  <Style Selector="ListBox.Tabs ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+  <Style Selector="ListBox.Tabs ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SelectionBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+
   <!-- ===== Tabs (the Fluent headers are display-sized) ===== -->
   <Style Selector="TabItem">
     <Setter Property="FontSize" Value="14" />

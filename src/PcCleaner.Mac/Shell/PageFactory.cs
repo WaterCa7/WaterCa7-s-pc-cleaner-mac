@@ -2,6 +2,7 @@ using PcCleaner.Core;
 using PcCleaner.Modules.Cleaner;
 using PcCleaner.Modules.Dashboard;
 using PcCleaner.Modules.Processes;
+using PcCleaner.Modules.Profile;
 using PcCleaner.Modules.Programs;
 using PcCleaner.Modules.Security;
 using PcCleaner.Modules.Settings;
@@ -53,6 +54,7 @@ public static class PageFactory
             new DiskViewModel(new DiskService(runner), new SpaceAnalyzer(AppPaths.Home), trash, shell, AppPaths.Home),
             new SecurityViewModel(security, fixes, shell),
             new SecurityViewModel(security, fixes, shell, SecurityPart.Network),
+            new ProfileViewModel(),
             new SettingsViewModel(shell, fda, new BackupRestorer(backups, AppPaths.Home, uid, runner, admin, loginItems)),
         };
         var main = new MainViewModel(pages);

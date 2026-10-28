@@ -78,9 +78,9 @@ public class WindowTests
         var texts = Texts(window);
         Assert.Contains("Главная", texts);
         Assert.Contains("Очистка", texts);
-        Assert.Contains("Диски", texts);
-        Assert.Contains("Безопасность", texts);
-        Assert.Contains("Сеть", texts);
+        Assert.Contains("Система", texts);
+        Assert.Contains("Защита", texts);
+        Assert.Contains("Профиль", texts);
         Assert.Contains("Настройки", texts);
         Assert.Contains("Mac ещё не проверялся", texts);
         Assert.NotNull(window.CaptureRenderedFrame());
@@ -129,6 +129,52 @@ public class WindowTests
         var texts = Texts(window);
         Assert.Contains("Полный доступ к диску", texts);
         Assert.Contains("Журнал", texts);
+    }
+
+    [AvaloniaFact]
+    public void ASectionWithTabs_ShowsTheStrip_AndOnlyItsListHasTheSelection()
+    {
+        var vm = DemoViewModel(MacInfoServiceTests.Mac());
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
+
+        vm.NavigateTo("Disk");
+        Dispatcher.UIThread.RunJobs();
+        var lists = window.GetVisualDescendants().OfType<ListBox>().ToList();
+        var tabs = lists.Single(l => l.Classes.Contains("Tabs"));
+        Assert.True(tabs.IsVisible);
+        Assert.Same(vm.SelectedPage, tabs.SelectedItem);
+        var texts = Texts(window);
+        Assert.Contains("Система", texts);
+        Assert.Contains("Автозагрузка", texts);
+
+        vm.NavigateTo("Settings");
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(tabs.IsVisible);
+        var nav = lists.Where(l => l.Classes.Contains("Nav")).ToList();
+        Assert.Single(nav, l => l.SelectedItem is not null);
+    }
+
+    [AvaloniaFact]
+    public void TheTabStrip_FollowsASectionWithTabs_AndAClickOnATabOpensIt()
+    {
+        var vm = DemoViewModel(MacInfoServiceTests.Mac());
+        using var shown = new ShownWindow(vm);
+        var window = shown.Window;
+        var tabs = window.GetVisualDescendants().OfType<ListBox>().Single(l => l.Classes.Contains("Tabs"));
+
+        vm.NavigateTo("Disk");
+        Dispatcher.UIThread.RunJobs();
+        vm.NavigateTo("Network");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(new[] { "Security", "Network" }, tabs.Items.OfType<PageViewModel>().Select(p => p.Key));
+        Assert.Same(vm.SelectedPage, tabs.SelectedItem);
+        Assert.Contains("Защита", Texts(window));
+
+        tabs.SelectedItem = tabs.Items.OfType<PageViewModel>().Single(p => p.Key == "Security");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Security", vm.SelectedPage!.Key);
+        Assert.Equal("Protection", vm.SelectedSection!.Key);
     }
 
 }

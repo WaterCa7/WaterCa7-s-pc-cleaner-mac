@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PcCleaner.Modules.Profile"
+             x:Class="PcCleaner.Modules.Profile.ProfileView"
+             x:DataType="vm:ProfileViewModel">
+  <StackPanel Spacing="14" Margin="0,4,8,8">
+    <Border Classes="Card">
+      <DockPanel>
+        <PathIcon DockPanel.Dock="Left" Width="22" Height="22" Margin="0,2,14,0" VerticalAlignment="Top"
+                  Data="{StaticResource Icon.Person}" Foreground="{StaticResource AccentBrush}" />
+        <StackPanel Spacing="4">
+          <TextBlock Classes="H3" Text="Вход в аккаунт появится здесь" />
+          <TextBlock Classes="Muted" TextWrapping="Wrap"
+                     Text="Аккаунт WaterCa7 включит Pro на этом Mac, покажет ваши компьютеры и примет промокод. Без входа программа работает как раньше." />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

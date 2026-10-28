@@ -12,6 +12,15 @@
         Foreground="{StaticResource TextBrush}"
         FontSize="13">
 
+  <Window.Resources>
+    <DataTemplate x:Key="SectionNavTemplate" x:DataType="core:SectionViewModel">
+      <StackPanel Orientation="Horizontal" Spacing="13">
+        <PathIcon Width="18" Height="18" Data="{Binding Icon, Converter={x:Static shell:IconConverter.Instance}}" />
+        <TextBlock Text="{Binding Title}" FontSize="13.5" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+  </Window.Resources>
+
   <Grid ColumnDefinitions="236,*">
 
     <!-- ===== Sidebar ===== -->
@@ -33,23 +42,32 @@
           </StackPanel>
         </StackPanel>
 
-        <ListBox Classes="Nav" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="core:PageViewModel">
-              <StackPanel Orientation="Horizontal" Spacing="13">
-                <PathIcon Width="18" Height="18" Data="{Binding Icon, Converter={x:Static shell:IconConverter.Instance}}" />
-                <TextBlock Text="{Binding Title}" FontSize="13.5" VerticalAlignment="Center" />
-              </StackPanel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <ListBox DockPanel.Dock="Bottom" Classes="Nav" Margin="0,0,0,14" ItemsSource="{Binding BottomSections}"
+                 SelectedItem="{Binding SelectedBottomSection}" ItemTemplate="{StaticResource SectionNavTemplate}" />
+        <Border DockPanel.Dock="Bottom" Height="1" Margin="20,6" Background="{StaticResource LineBrush}" />
+        <ListBox Classes="Nav" ItemsSource="{Binding TopSections}" SelectedItem="{Binding SelectedTopSection}"
+                 ItemTemplate="{StaticResource SectionNavTemplate}" />
       </DockPanel>
     </Border>
 
     <!-- ===== Content ===== -->
     <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*,Auto">
       <StackPanel Margin="32,24,32,10">
-        <TextBlock Classes="H1" Text="{Binding SelectedPage.Title}" />
+        <TextBlock Classes="H1" Text="{Binding HeaderTitle}" />
+        <!-- The tabs of the section; a section of one page has no strip. -->
+        <ListBox Classes="Tabs" Margin="0,10,0,2" ItemsSource="{Binding SelectedSection.Tabs}"
+                 SelectedItem="{Binding SelectedPage}" IsVisible="{Binding SelectedSection.ShowTabs}">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="core:PageViewModel">
+              <TextBlock Text="{Binding Title}" FontSize="13" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
         <TextBlock Classes="Muted" FontSize="13" Margin="0,4,0,0" Text="{Binding SelectedPage.Subtitle}" />
       </StackPanel>
 

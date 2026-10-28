@@ -3,6 +3,7 @@
              xmlns:cleaner="using:PcCleaner.Modules.Cleaner"
              xmlns:dashboard="using:PcCleaner.Modules.Dashboard"
              xmlns:processes="using:PcCleaner.Modules.Processes"
+             xmlns:profile="using:PcCleaner.Modules.Profile"
              xmlns:programs="using:PcCleaner.Modules.Programs"
              xmlns:security="using:PcCleaner.Modules.Security"
              xmlns:settings="using:PcCleaner.Modules.Settings"
@@ -48,6 +49,9 @@
     </DataTemplate>
     <DataTemplate DataType="programs:ProgramsViewModel">
       <programs:ProgramsView />
+    </DataTemplate>
+    <DataTemplate DataType="profile:ProfileViewModel">
+      <profile:ProfileView />
     </DataTemplate>
     <DataTemplate DataType="settings:SettingsViewModel">
       <settings:SettingsView />
