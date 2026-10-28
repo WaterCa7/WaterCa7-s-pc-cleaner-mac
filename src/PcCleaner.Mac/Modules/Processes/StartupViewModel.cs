@@ -19,7 +19,6 @@ public sealed class StartupViewModel : PageViewModel
     private bool _showApple;
     private string? _startupProblems;
     private string? _loginItemsStatus;
-    private bool _loginItemsLoaded;
     private bool _loginItemsNeedPermission;
 
     public StartupViewModel(StartupService startup, LoginItemsService loginItems, MacShell shell)
@@ -81,18 +80,6 @@ public sealed class StartupViewModel : PageViewModel
     public bool HasStartupProblems => !string.IsNullOrEmpty(StartupProblems);
 
     public ObservableCollection<LoginItemRow> LoginItems { get; } = new();
-
-    public bool LoginItemsLoaded
-    {
-        get => _loginItemsLoaded;
-        private set
-        {
-            if (Set(ref _loginItemsLoaded, value))
-                OnPropertyChanged(nameof(LoginItemsNotLoaded));
-        }
-    }
-
-    public bool LoginItemsNotLoaded => !LoginItemsLoaded;
 
     public string? LoginItemsStatus
     {
@@ -191,7 +178,6 @@ public sealed class StartupViewModel : PageViewModel
                     LoginItems.Add(new LoginItemRow(item, RemoveLoginItemAsync));
                 LoginItemsNeedPermission = result.NeedsPermission;
                 LoginItemsStatus = result.Error ?? (result.Items.Count == 0 ? "Объектов входа нет — при входе ничего не открывается само." : null);
-                LoginItemsLoaded = result.Error is null;
             });
         });
     }

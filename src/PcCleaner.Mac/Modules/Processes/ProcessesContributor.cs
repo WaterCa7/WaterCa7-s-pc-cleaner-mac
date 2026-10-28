@@ -3,7 +3,7 @@ using PcCleaner.Modules.Startup;
 
 namespace PcCleaner.Modules.Processes;
 
-/// <summary>Findings of «Процессы и автозагрузка» for the dashboard (pure rules).</summary>
+/// <summary>Findings of «Процессы» and «Автозагрузка» for the dashboard (pure rules).</summary>
 public static class ProcessesRules
 {
     public const string ModuleName = "Процессы и автозагрузка";
@@ -102,7 +102,7 @@ public static class ProcessesRules
     }
 }
 
-/// <summary>The dashboard check of «Процессы и автозагрузка»: running processes and startup items (read-only).</summary>
+/// <summary>The dashboard check of «Процессы» and «Автозагрузка»: running processes and startup items (read-only).</summary>
 public sealed class ProcessesContributor : IHealthContributor
 {
     private readonly ProcessesService _processes;

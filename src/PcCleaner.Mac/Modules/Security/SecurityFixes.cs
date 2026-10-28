@@ -8,7 +8,7 @@ public sealed record NetworkSnapshot(string Service, ProxySetting Web, ProxySett
     IReadOnlyList<string> Dns);
 
 /// <summary>
-/// The changes «Безопасность и сеть» can make, each through one macOS password window with the commands as data. Network
+/// The changes «Безопасность» and «Сеть» can make, each through one macOS password window with the commands as data. Network
 /// settings and /etc/hosts are copied into the backups first; without a copy nothing changes.
 /// </summary>
 public sealed class SecurityFixes

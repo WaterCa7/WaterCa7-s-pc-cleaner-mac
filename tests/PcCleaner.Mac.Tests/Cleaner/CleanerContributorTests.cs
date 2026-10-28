@@ -43,6 +43,8 @@ public class CleanerContributorTests
             Assert.Equal(IssueSeverity.Low, i.Severity);
             Assert.Null(i.FixAsync);
             Assert.Equal("Cleaner", i.TargetPageKey);
+            Assert.Contains("«Очистка»", i.Details, StringComparison.Ordinal);
+            Assert.DoesNotContain("Очистка и диски", i.Details, StringComparison.Ordinal);
         });
     }
 

@@ -73,6 +73,26 @@ public class DiskViewModelTests
     }
 
     [Fact]
+    public async Task EveryVisit_ReadsTheVolumesAgain_ButNotTheFolderScans()
+    {
+        using var home = new FakeHome();
+        var runner = CleanerViewModelTests.Runner();
+        var vm = Create(home, runner);
+        int Dfs() => runner.Calls.Count(c => c.StartsWith("/bin/df", StringComparison.Ordinal));
+
+        await vm.OnNavigatedToAsync();
+        Assert.Equal(1, Dfs());
+        var folders = vm.TopFolders.Count;
+
+        await vm.OnNavigatedToAsync();
+        await vm.OnNavigatedToAsync();
+
+        Assert.Equal(3, Dfs());
+        Assert.Equal(folders, vm.TopFolders.Count);
+        Assert.False(vm.IsBusy);
+    }
+
+    [Fact]
     public async Task LargeFile_ToTheTrash_AfterYes_AndTheRowGoes()
     {
         using var home = new FakeHome();

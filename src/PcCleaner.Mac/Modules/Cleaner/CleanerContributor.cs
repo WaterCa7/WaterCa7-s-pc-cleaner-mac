@@ -3,7 +3,7 @@ using PcCleaner.Modules.Dashboard;
 
 namespace PcCleaner.Modules.Cleaner;
 
-/// <summary>Findings of «Очистка и диски» for the dashboard (pure rules).</summary>
+/// <summary>Findings of «Очистка» and «Диски» for the dashboard (pure rules).</summary>
 public static class CleanerRules
 {
     public const long MediumCacheBytes = 500L << 20;
@@ -39,7 +39,7 @@ public static class CleanerRules
                 Module = DiskSpaceRules.ModuleName,
                 Title = $"Кэши разработки занимают {Format.Bytes(developer)}",
                 Details = "Xcode DerivedData, кэши симуляторов, Homebrew, npm и других инструментов. Их можно очистить в разделе " +
-                          "«Очистка и диски»; следующая сборка проекта займёт больше времени.",
+                          "«Очистка»; следующая сборка проекта займёт больше времени.",
                 Severity = IssueSeverity.Low,
                 ReclaimableBytes = developer,
                 TargetPageKey = "Cleaner",
@@ -52,7 +52,7 @@ public static class CleanerRules
                 Module = DiskSpaceRules.ModuleName,
                 Title = $"В Корзине {Format.Bytes(trash)}",
                 Details = "Удалённые файлы по-прежнему занимают место, пока Корзина не очищена. Очистить её можно в разделе " +
-                          "«Очистка и диски» — это безвозвратно.",
+                          "«Очистка» — это безвозвратно.",
                 Severity = IssueSeverity.Low,
                 ReclaimableBytes = trash,
                 TargetPageKey = "Cleaner",
@@ -65,7 +65,7 @@ public static class CleanerRules
         => scans.FirstOrDefault(s => s.Category == category)?.Bytes ?? 0;
 }
 
-/// <summary>The dashboard check of «Очистка и диски»: free disk space and what the cleaning would free.</summary>
+/// <summary>The dashboard check of «Очистка» and «Диски»: free disk space and what the cleaning would free.</summary>
 public sealed class CleanerContributor : IHealthContributor
 {
     private readonly CleanerService _cleaner;

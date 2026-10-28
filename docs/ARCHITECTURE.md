@@ -125,7 +125,7 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 TextBrush MutedBrush AccentBrush AccentHoverBrush AccentPressedBrush AccentTextBrush AccentSoftBrush DangerBrush
 DangerSoftBrush WarningBrush WarningSoftBrush SuccessBrush SuccessSoftBrush InfoBrush InfoSoftBrush HoverBrush
 SelectionBrush`. Классы стилей: текст `H1 H2 H3 Muted BigNumber`; `Border` — `Card InnerCard Badge Chip`; кнопки —
-`AccentButton DangerButton GhostButton LinkButton`; `ListBox` — `Nav Plain`. Переключатель — стандартный `ToggleSwitch`.
+`AccentButton DangerButton GhostButton LinkButton`; `ListBox` — `Nav Tabs Plain` (`Tabs` — полоса вкладок раздела над страницей). Переключатель — стандартный `ToggleSwitch`.
 Остальные элементы — тёмная тема Fluent с акцентом `#34D399`. Цвет из модели представления — ключом кисти через
 `BrushKeyConverter`, значок — именем через `IconConverter`. Привязки компилируются: у каждого шаблона и вида есть
 `x:DataType`.
@@ -166,7 +166,7 @@ CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, 
 ## Безопасность и сеть (вкладки «Безопасность» и «Сеть» раздела «Защита»)
 
 - Обе вкладки — один `SecurityViewModel` с `SecurityPart` (`Protection` — Key `Security`, карточка «Защита Mac»; `Network` —
-  Key `Network`, карточка «Сеть Mac»: прокси, DNS, hosts, Wi-Fi); сервис, исправления и отчёт общие.
+  Key `Network`, карточка «Сеть Mac»: прокси, DNS, hosts, Wi-Fi); у каждой вкладки свой экземпляр, свой `SecurityReport` и своё чтение (общий только код сервиса и исправлений).
 - `SecurityService.CheckAsync` — все проверки таблицы спецификации одним чтением → `SecurityReport` (проверки + сырые
   факты для исправлений: прокси и DNS по службам, текст hosts, профили); `UpdatesAsync` — `softwareupdate -l` отдельно
   (до минуты). Утилита не ответила — проверка «нет данных», а не ошибка раздела.

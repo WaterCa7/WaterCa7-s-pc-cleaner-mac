@@ -57,6 +57,12 @@ public static class PageCapture
             .Where(p => requests.Count == 0 || requests.Any(r => Matches(r, vm.Sections.FirstOrDefault(s => s.Contains(p.Page)), p.Page)))
             .ToList();
 
+    /// <summary>The requests that name no tab at all (a typo, or «System/Network» which does not exist), in the order given.</summary>
+    public static List<string> UnmatchedRequests(MainViewModel vm, IReadOnlyList<string> requests)
+        => requests
+            .Where(r => !vm.Pages.Any(p => Matches(r, vm.Sections.FirstOrDefault(s => s.Contains(p)), p)))
+            .ToList();
+
     /// <summary>NN-Key.png for a section of one page with the same key (01-Dashboard.png), else NN-Section-Tab.png (06-System-Disk.png).</summary>
     public static string FileName(int number, PageViewModel page, IReadOnlyList<SectionViewModel> sections)
         => sections.FirstOrDefault(s => s.Contains(page)) is { } section && !string.Equals(section.Key, page.Key, StringComparison.OrdinalIgnoreCase)

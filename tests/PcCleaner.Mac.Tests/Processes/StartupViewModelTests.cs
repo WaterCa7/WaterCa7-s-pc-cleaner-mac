@@ -127,7 +127,6 @@ public class StartupViewModelTests
         await vm.LoadLoginItemsCommand.ExecuteAsync();
         Assert.Equal(new[] { "Telegram", "Музыка" }, vm.LoginItems.Select(r => r.Name));
         Assert.Equal("/Applications/Музыка.app · открывается скрытой", vm.LoginItems[1].PathText);
-        Assert.True(vm.LoginItemsLoaded);
 
         Dialogs.UseSilentMode();
         await vm.RemoveLoginItemAsync(vm.LoginItems[0]);

@@ -23,7 +23,7 @@ public enum FixKind
 }
 
 /// <summary>
-/// One check of «Безопасность и сеть»: how it looks, what to tell the user, and what can be done — a fix through the
+/// One check of «Безопасность» and «Сеть»: how it looks, what to tell the user, and what can be done — a fix through the
 /// password window, a System Settings pane, or only an instruction.
 /// </summary>
 /// <param name="Severity">The dashboard finding when the check is not OK (null: nothing to report).</param>

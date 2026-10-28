@@ -15,7 +15,7 @@ public sealed record SecurityPaths(string Hosts, string LoginWindowPlist, string
 }
 
 /// <summary>
-/// The read-only checks of «Безопасность и сеть». Every tool is asked through <see cref="ICommandRunner"/>; a tool that
+/// The read-only checks of «Безопасность» and «Сеть». Every tool is asked through <see cref="ICommandRunner"/>; a tool that
 /// does not answer makes its check "нет данных" with the reason, never a failure of the whole page. `softwareupdate -l`
 /// is slow and asks Apple's servers, so it runs apart (<see cref="UpdatesAsync"/>).
 /// </summary>

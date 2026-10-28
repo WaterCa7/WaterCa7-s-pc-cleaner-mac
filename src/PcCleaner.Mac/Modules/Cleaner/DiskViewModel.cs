@@ -6,7 +6,7 @@ namespace PcCleaner.Modules.Cleaner;
 
 /// <summary>
 /// «Диски» (menu «Система»): the volumes and Time Machine snapshots, the biggest folders of the home folder, large files and old
-/// downloads, each moved to the Trash only after a «Да». Was the second tab of «Очистка и диски».
+/// downloads, each moved to the Trash only after a «Да». Was the second tab of the old «Очистка и диски».
 /// </summary>
 public sealed class DiskViewModel : PageViewModel
 {
@@ -101,8 +101,12 @@ public sealed class DiskViewModel : PageViewModel
 
     public AsyncRelayCommand FindOldDownloadsCommand { get; }
 
-    /// <summary>The first visit reads the volumes once; later visits (and callers) wait for that.</summary>
-    public override Task OnNavigatedToAsync() => _loading ??= RunBusyAsync("Смотрим диски…", RefreshAsync);
+    /// <summary>
+    /// Every visit reads the volumes and snapshots again (free space changes after a cleaning on another page); a visit while the
+    /// page is already reading joins that read. The folder, file and download scans stay behind their buttons.
+    /// </summary>
+    public override Task OnNavigatedToAsync()
+        => IsBusy && _loading is not null ? _loading : _loading = RunBusyAsync("Смотрим диски…", RefreshAsync);
 
     /// <summary>The volumes and snapshots (read-only; the user's folders are walked only on a button).</summary>
     public override Task PreviewScanAsync(CancellationToken ct) => RefreshAsync(ct);

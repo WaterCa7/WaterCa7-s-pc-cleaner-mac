@@ -2,7 +2,7 @@ using PcCleaner.Core;
 
 namespace PcCleaner.Modules.Cleaner;
 
-/// <summary>A category row of the «Очистка» tab.</summary>
+/// <summary>A category row of «Очистка».</summary>
 public sealed class CategoryItem : ObservableObject
 {
     private readonly Action _selectionChanged;

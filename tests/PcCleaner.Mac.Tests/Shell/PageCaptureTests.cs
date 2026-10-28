@@ -25,6 +25,17 @@ public class PageCaptureTests
     public void ARequest_NamesAPage_ASection_OrASectionTab(string request, string[] expected)
         => Assert.Equal(expected, PageCapture.PagesToShoot(Shell(), request.Split(',')).Select(s => s.Page.Key));
 
+    [Theory]
+    [InlineData("System,Nowhere", new[] { "Nowhere" })]
+    [InlineData("Nowhere,System/Network,Dashboard", new[] { "Nowhere", "System/Network" })]
+    [InlineData("Disk,protection/network", new string[0])]
+    public void UnmatchedRequests_AreThoseNamingNoTab(string requests, string[] expected)
+        => Assert.Equal(expected, PageCapture.UnmatchedRequests(Shell(), requests.Split(',')));
+
+    [Fact]
+    public void UnmatchedRequests_AreNone_WithoutRequests()
+        => Assert.Empty(PageCapture.UnmatchedRequests(Shell(), Array.Empty<string>()));
+
     [Fact]
     public void Files_AreNamedBySectionAndTab_AndASinglePageSectionByItsKey()
     {

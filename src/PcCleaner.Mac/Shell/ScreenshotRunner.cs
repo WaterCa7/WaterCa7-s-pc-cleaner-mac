@@ -36,11 +36,23 @@ public static class ScreenshotRunner
                 var vm = PageFactory.CreateMain(new ProcessCommandRunner(), new AppSettings());
                 var window = new MainWindow { DataContext = vm };
                 window.Show();
-                var files = await PageCapture.CaptureAsync(window, vm, options, CancellationToken.None);
+                var unmatched = PageCapture.UnmatchedRequests(vm, options.Pages);
                 var expected = PageCapture.PagesToShoot(vm, options.Pages).Count;
-                if (files.Count != expected)
+                if (options.Pages.Count > 0 && expected == 0)
+                {
+                    Console.WriteLine($"Ни один запрос --page не подошёл к странице: {string.Join(", ", unmatched.Select(r => $"«{r}»"))}. " +
+                                      "Нужен ключ страницы, ключ раздела или «Раздел/Вкладка».");
                     exitCode = 1;
-                Console.WriteLine($"Сохранено снимков: {files.Count} из {expected}");
+                }
+                else
+                {
+                    if (unmatched.Count > 0)
+                        Console.WriteLine($"Предупреждение: не подошли к странице запросы --page: {string.Join(", ", unmatched.Select(r => $"«{r}»"))}.");
+                    var files = await PageCapture.CaptureAsync(window, vm, options, CancellationToken.None);
+                    if (files.Count != expected)
+                        exitCode = 1;
+                    Console.WriteLine($"Сохранено снимков: {files.Count} из {expected}");
+                }
                 window.Close();
             }
             catch (Exception ex)

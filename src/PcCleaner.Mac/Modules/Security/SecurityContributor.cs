@@ -2,7 +2,7 @@ using PcCleaner.Core;
 
 namespace PcCleaner.Modules.Security;
 
-/// <summary>Findings of «Безопасность и сеть» for the dashboard (pure rules over the checks).</summary>
+/// <summary>Findings of «Безопасность» and «Сеть» for the dashboard (pure rules over the checks).</summary>
 public static class SecurityRules
 {
     public const string ModuleName = "Безопасность и сеть";
@@ -37,7 +37,7 @@ public static class SecurityRules
     }
 }
 
-/// <summary>The dashboard check of «Безопасность и сеть»: every check plus the update list, read-only.</summary>
+/// <summary>The dashboard check of «Безопасность» and «Сеть»: every check plus the update list, read-only.</summary>
 public sealed class SecurityContributor : IHealthContributor
 {
     private readonly SecurityService _security;
