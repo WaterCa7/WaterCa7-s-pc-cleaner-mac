@@ -37,9 +37,7 @@ public static class ScreenshotRunner
                 var window = new MainWindow { DataContext = vm };
                 window.Show();
                 var files = await PageCapture.CaptureAsync(window, vm, options, CancellationToken.None);
-                var expected = options.Pages.Count == 0
-                    ? vm.Pages.Count
-                    : vm.Pages.Count(p => options.Pages.Contains(p.Key, StringComparer.OrdinalIgnoreCase));
+                var expected = PageCapture.PagesToShoot(vm, options.Pages).Count;
                 if (files.Count != expected)
                     exitCode = 1;
                 Console.WriteLine($"Сохранено снимков: {files.Count} из {expected}");

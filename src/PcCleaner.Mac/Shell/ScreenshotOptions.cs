@@ -3,8 +3,9 @@ using System.Globalization;
 namespace PcCleaner.Shell;
 
 /// <summary>
-/// `--screenshots &lt;folder&gt; [--page Dashboard,Settings] [--no-scan] [--size 1040x660]`: renders every page without a
-/// screen after a read-only scan and saves NN-Key.png and log.txt.
+/// `--screenshots &lt;folder&gt; [--page Dashboard,System,Protection/Network] [--no-scan] [--size 1040x660]`: renders every tab
+/// without a screen after a read-only scan (--page: a page key, a section or Section/Tab) and saves NN-Key.png (a section of one
+/// page) or NN-Section-Tab.png and log.txt.
 /// </summary>
 public sealed record ScreenshotOptions(string Dir, IReadOnlyList<string> Pages, bool Scan, int Width, int Height)
 {

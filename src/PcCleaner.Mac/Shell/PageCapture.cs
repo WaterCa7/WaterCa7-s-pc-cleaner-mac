@@ -16,11 +16,8 @@ public static class PageCapture
         window.Width = options.Width;
         window.Height = options.Height;
         var files = new List<string>();
-        for (var index = 0; index < vm.Pages.Count; index++)
+        foreach (var (number, page) in PagesToShoot(vm, options.Pages))
         {
-            var page = vm.Pages[index];
-            if (options.Pages.Count > 0 && !options.Pages.Contains(page.Key, StringComparer.OrdinalIgnoreCase))
-                continue;
             vm.SelectedPage = page;
             await page.OnNavigatedToAsync();
             if (options.Scan)
@@ -43,10 +40,36 @@ public static class PageCapture
                 Log.Error($"Скриншоты: не удалось снять страницу «{page.Title}»");
                 continue;
             }
-            var file = Path.Combine(options.Dir, $"{index + 1:00}-{page.Key}.png");
+            var file = Path.Combine(options.Dir, FileName(number, page, vm.Sections));
             frame.Save(file, new PngBitmapEncoderOptions());
             files.Add(file);
         }
         return files;
     }
+
+    /// <summary>
+    /// The tabs to photograph: all of them, or those <paramref name="requests"/> name (a page key, a section key or «Section/Tab»).
+    /// <c>Number</c> is the place in <see cref="MainViewModel.Pages"/> (1-based), so a tab keeps its file name.
+    /// </summary>
+    public static List<(int Number, PageViewModel Page)> PagesToShoot(MainViewModel vm, IReadOnlyList<string> requests)
+        => vm.Pages
+            .Select((page, index) => (Number: index + 1, Page: page))
+            .Where(p => requests.Count == 0 || requests.Any(r => Matches(r, vm.Sections.FirstOrDefault(s => s.Contains(p.Page)), p.Page)))
+            .ToList();
+
+    /// <summary>NN-Key.png for a section of one page with the same key (01-Dashboard.png), else NN-Section-Tab.png (06-System-Disk.png).</summary>
+    public static string FileName(int number, PageViewModel page, IReadOnlyList<SectionViewModel> sections)
+        => sections.FirstOrDefault(s => s.Contains(page)) is { } section && !string.Equals(section.Key, page.Key, StringComparison.OrdinalIgnoreCase)
+            ? $"{number:00}-{section.Key}-{page.Key}.png"
+            : $"{number:00}-{page.Key}.png";
+
+    private static bool Matches(string request, SectionViewModel? section, PageViewModel page)
+    {
+        var parts = request.Split('/', 2, StringSplitOptions.TrimEntries);
+        if (parts.Length == 2)
+            return section is not null && Same(parts[0], section.Key) && Same(parts[1], page.Key);
+        return Same(request.Trim(), page.Key) || (section is not null && Same(request.Trim(), section.Key));
+    }
+
+    private static bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 }
