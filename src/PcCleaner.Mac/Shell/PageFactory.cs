@@ -52,6 +52,7 @@ public static class PageFactory
             new ProgramsViewModel(programs, shell, AppPaths.Home),
             new DiskViewModel(new DiskService(runner), new SpaceAnalyzer(AppPaths.Home), trash, shell, AppPaths.Home),
             new SecurityViewModel(security, fixes, shell),
+            new SecurityViewModel(security, fixes, shell, SecurityPart.Network),
             new SettingsViewModel(shell, fda, new BackupRestorer(backups, AppPaths.Home, uid, runner, admin, loginItems)),
         };
         var main = new MainViewModel(pages);

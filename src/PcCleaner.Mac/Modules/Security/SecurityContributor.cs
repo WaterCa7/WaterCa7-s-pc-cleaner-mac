@@ -7,6 +7,7 @@ public static class SecurityRules
 {
     public const string ModuleName = "Безопасность и сеть";
     public const string PageKey = "Security";
+    public const string NetworkPageKey = "Network";
 
     /// <summary>How long the dashboard waits for `softwareupdate -l` (the module has a minute in all).</summary>
     public static readonly TimeSpan UpdatesBudget = TimeSpan.FromSeconds(40);
@@ -29,7 +30,7 @@ public static class SecurityRules
                 Severity = severity,
                 FixAsync = kind is FixKind.None or FixKind.Hosts ? null : ct => fix(kind, ct),
                 AutoFixSafe = false,
-                TargetPageKey = PageKey,
+                TargetPageKey = check.Group == CheckGroup.Network ? NetworkPageKey : PageKey,
             });
         }
         return issues;
@@ -63,7 +64,7 @@ public sealed class SecurityContributor : IHealthContributor
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            Log.Info("Главная: список обновлений macOS не успел загрузиться — проверьте его в разделе «Безопасность и сеть»");
+            Log.Info("Главная: список обновлений macOS не успел загрузиться — проверьте его в разделе «Безопасность»");
             updates = null;
         }
         return SecurityRules.Evaluate(report, updates,

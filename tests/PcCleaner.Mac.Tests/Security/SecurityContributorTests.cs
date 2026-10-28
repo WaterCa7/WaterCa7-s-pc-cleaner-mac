@@ -47,6 +47,14 @@ public class SecurityContributorTests
         Assert.NotNull(issues.Single(i => i.Title.StartsWith("Прокси", StringComparison.Ordinal)).FixAsync);
         Assert.Contains(issues, i => i.Title == "Профиль «Search Settings»: прокси, настройки браузера" && i.Severity == IssueSeverity.High);
         Assert.Contains(issues, i => i.Title == "Wi-Fi: открытая сеть без пароля" && i.Severity == IssueSeverity.Medium);
+        // The network checks lead to «Сеть», the rest (the profile among them) to «Безопасность».
+        Assert.All(issues, i => Assert.Equal(
+            i.Title.StartsWith("Прокси", StringComparison.Ordinal) || i.Title.StartsWith("DNS", StringComparison.Ordinal)
+            || i.Title.StartsWith("Файл hosts", StringComparison.Ordinal) || i.Title.StartsWith("Wi-Fi", StringComparison.Ordinal)
+                ? "Network" : "Security",
+            i.TargetPageKey));
+        Assert.Contains(issues, i => i.TargetPageKey == "Network" && i.Title.StartsWith("Файл hosts", StringComparison.Ordinal));
+        Assert.Contains(issues, i => i.TargetPageKey == "Security" && i.Title.StartsWith("Профиль", StringComparison.Ordinal));
         // The update list did not answer (no fixture): no finding about it, and nothing failed.
         Assert.DoesNotContain(issues, i => i.Title.StartsWith("Обновления macOS", StringComparison.Ordinal));
     }

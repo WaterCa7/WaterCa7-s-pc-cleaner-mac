@@ -11,10 +11,9 @@
         <DockPanel>
           <Button DockPanel.Dock="Right" Content="Проверить снова" Command="{Binding RefreshCommand}" VerticalAlignment="Center" Margin="16,0,0,0" />
           <StackPanel Spacing="4">
-            <TextBlock Classes="H3" Text="Защита Mac и сети" />
+            <TextBlock Classes="H3" Text="{Binding CardTitle}" />
             <TextBlock Classes="Muted" TextWrapping="Wrap" Text="{Binding Summary}" />
-            <TextBlock Classes="Muted" TextWrapping="Wrap" FontSize="12"
-                       Text="Проверки только читают настройки. Исправления спрашивают пароль администратора в окне macOS; прежние значения прокси, DNS и файла hosts сохраняются в «Настройках» → «Резервные копии»." />
+            <TextBlock Classes="Muted" TextWrapping="Wrap" FontSize="12" Text="{Binding NoteText}" />
           </StackPanel>
         </DockPanel>
       </Border>

@@ -11,14 +11,14 @@ public class SecurityViewModelTests
 {
     internal sealed class Page : IDisposable
     {
-        public Page(bool infected = false)
+        public Page(bool infected = false, SecurityPart part = SecurityPart.Protection)
         {
             Mac = new SecurityMac();
             if (infected)
                 Mac.Infected();
             Mac.Fake.OnFixture("/usr/sbin/softwareupdate", new[] { "-l" }, "security/softwareupdate-26.txt");
             Vm = new SecurityViewModel(Mac.Service, new SecurityFixes(new AdminPrompt(Mac.Fake), new BackupStore(Path.Combine(Dir.Path, "Backups")),
-                Path.Combine(Dir.Path, "tmp")), new MacShell(Mac.Fake));
+                Path.Combine(Dir.Path, "tmp")), new MacShell(Mac.Fake), part);
         }
 
         public SecurityMac Mac { get; }
@@ -47,7 +47,7 @@ public class SecurityViewModelTests
     {
         using var page = new Page();
         await page.LoadAsync();
-        Assert.Equal(new[] { CheckGroup.MacOs, CheckGroup.Access, CheckGroup.Profiles, CheckGroup.Network }, page.Vm.Groups.Select(g => g.Group));
+        Assert.Equal(new[] { CheckGroup.MacOs, CheckGroup.Access, CheckGroup.Profiles }, page.Vm.Groups.Select(g => g.Group));
         Assert.Equal("Защита macOS", page.Vm.Groups[0].Title);
         var updates = page.Item("updates");
         Assert.Equal(("есть обновления безопасности", "WarningBrush", "Warning"), (updates.Summary, updates.BrushKey, updates.IconName));
@@ -56,9 +56,6 @@ public class SecurityViewModelTests
         Assert.True(page.Item("firewall").CanFix);
         Assert.True(page.Item("filevault").HasSettings);
         Assert.Equal("Требуют внимания: 7.", page.Vm.Summary);
-        // The runner's own line ("192.168.64.2 Test Mac.local") is shown for information, not ticked.
-        var own = Assert.Single(page.Vm.HostsLines);
-        Assert.Equal((SecurityStatus.Info, false), (own.Risk, own.IsSelected));
     }
 
     [Fact]
@@ -102,7 +99,7 @@ public class SecurityViewModelTests
     [Fact]
     public async Task Hosts_DangerousLinesAreTicked()
     {
-        using var page = new Page(infected: true);
+        using var page = new Page(infected: true, part: SecurityPart.Network);
         await page.LoadAsync();
         Assert.True(page.Vm.HasHostsLines);
         Assert.Equal(new[] { true, true, true }, page.Vm.HostsLines.Select(l => l.IsSelected));
@@ -125,5 +122,39 @@ public class SecurityViewModelTests
         {
             Dialogs.UseSilentMode();
         }
+    }
+
+    [Fact]
+    public async Task TheNetworkTab_ShowsOnlyTheNetworkChecks_AndTheHostsLines()
+    {
+        using var page = new Page(infected: true, part: SecurityPart.Network);
+        await page.LoadAsync();
+
+        Assert.Equal("Network", page.Vm.Key);
+        Assert.Equal("Сеть", page.Vm.Title);
+        Assert.Equal(new[] { CheckGroup.Network }, page.Vm.Groups.Select(g => g.Group));
+        Assert.True(page.Vm.HasHostsLines);
+    }
+
+    [Fact]
+    public async Task TheNetworkTab_ShowsTheRunnersOwnHostsLine_ForInformation()
+    {
+        using var page = new Page(part: SecurityPart.Network);
+        await page.LoadAsync();
+
+        // The runner's own line ("192.168.64.2 Test Mac.local") is shown for information, not ticked.
+        var own = Assert.Single(page.Vm.HostsLines);
+        Assert.Equal((SecurityStatus.Info, false), (own.Risk, own.IsSelected));
+    }
+
+    [Fact]
+    public async Task TheProtectionTab_HasNoHostsLines_AndIsCalledSecurity()
+    {
+        using var page = new Page(infected: true);
+        await page.LoadAsync();
+
+        Assert.Equal("Security", page.Vm.Key);
+        Assert.Equal("Безопасность", page.Vm.Title);
+        Assert.False(page.Vm.HasHostsLines);
     }
 }

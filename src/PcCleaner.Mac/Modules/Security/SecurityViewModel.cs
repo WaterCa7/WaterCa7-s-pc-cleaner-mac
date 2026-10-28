@@ -3,38 +3,62 @@ using PcCleaner.Core;
 
 namespace PcCleaner.Modules.Security;
 
+/// <summary>Which checks a <see cref="SecurityViewModel"/> shows: «Безопасность» or «Сеть» (menu «Защита»).</summary>
+public enum SecurityPart
+{
+    Protection,
+    Network,
+}
+
 /// <summary>
-/// «Безопасность и сеть»: the checks by group with an explanation and what can be done. A fix through the password window
-/// asks first, listing the commands; the update list loads in the background (it asks Apple's servers).
+/// «Безопасность» or «Сеть» (menu «Защита»): one model for both tabs, each showing its own groups of the same checks with an
+/// explanation and what can be done. A fix through the password window asks first, listing the commands; the update list
+/// («Безопасность» only) loads in the background (it asks Apple's servers).
 /// </summary>
 public sealed class SecurityViewModel : PageViewModel
 {
     private readonly SecurityService _security;
     private readonly SecurityFixes _fixes;
     private readonly MacShell _shell;
+    private readonly SecurityPart _part;
     private SecurityReport? _report;
     private SecurityCheck _updates;
     private Task? _loading;
     private string? _lastResult;
     private string _summary = "";
 
-    public SecurityViewModel(SecurityService security, SecurityFixes fixes, MacShell shell)
+    public SecurityViewModel(SecurityService security, SecurityFixes fixes, MacShell shell, SecurityPart part = SecurityPart.Protection)
     {
         _security = security;
         _fixes = fixes;
         _shell = shell;
+        _part = part;
         _updates = new SecurityCheck("updates", CheckGroup.MacOs, "Обновления macOS", SecurityStatus.Unknown, "проверяем…",
             "Список обновлений загружается с серверов Apple — это может занять до минуты.");
-        RefreshCommand = new AsyncRelayCommand(() => RunBusyAsync("Проверяем защиту и сеть…", RefreshAsync), () => !IsBusy);
+        RefreshCommand = new AsyncRelayCommand(() => RunBusyAsync(CheckingText, RefreshAsync), () => !IsBusy);
     }
 
-    public override string Title => "Безопасность и сеть";
+    public override string Title => _part == SecurityPart.Network ? "Сеть" : "Безопасность";
 
-    public override string Subtitle => "Защита macOS, вход, профили и настройки сети";
+    public override string Subtitle => _part == SecurityPart.Network
+        ? "Прокси, DNS, файл hosts и Wi-Fi"
+        : "Защита macOS, вход и общий доступ, профили";
 
-    public override string Icon => "Shield";
+    public override string Icon => _part == SecurityPart.Network ? "Globe" : "Shield";
 
-    public override string Key => "Security";
+    public override string Key => _part == SecurityPart.Network ? "Network" : "Security";
+
+    public SecurityPart Part => _part;
+
+    /// <summary>The title of the summary card.</summary>
+    public string CardTitle => _part == SecurityPart.Network ? "Сеть Mac" : "Защита Mac";
+
+    /// <summary>The note under the summary.</summary>
+    public string NoteText => _part == SecurityPart.Network
+        ? "Проверки только читают настройки. Исправления спрашивают пароль администратора в окне macOS; прежние значения прокси, DNS и файла hosts сохраняются в «Настройках» → «Резервные копии»."
+        : "Проверки только читают настройки. Исправления спрашивают пароль администратора в окне macOS.";
+
+    private string CheckingText => _part == SecurityPart.Network ? "Проверяем сеть…" : "Проверяем защиту…";
 
     public ObservableCollection<CheckGroupItem> Groups { get; } = new();
 
@@ -68,7 +92,7 @@ public sealed class SecurityViewModel : PageViewModel
 
     public SecurityReport? Report => _report;
 
-    public override Task OnNavigatedToAsync() => _loading ??= RunBusyAsync("Проверяем защиту и сеть…", RefreshAsync);
+    public override Task OnNavigatedToAsync() => _loading ??= RunBusyAsync(CheckingText, RefreshAsync);
 
     /// <summary>The checks without the update list (which may take a minute and needs Apple's servers).</summary>
     public override async Task PreviewScanAsync(CancellationToken ct)
@@ -81,7 +105,8 @@ public sealed class SecurityViewModel : PageViewModel
     {
         _report = await _security.CheckAsync(ct);
         Ui.Invoke(Rebuild);
-        UpdatesLoading = LoadUpdatesAsync();
+        if (_part == SecurityPart.Protection)
+            UpdatesLoading = LoadUpdatesAsync();
     }
 
     private async Task LoadUpdatesAsync()
@@ -98,18 +123,24 @@ public sealed class SecurityViewModel : PageViewModel
     {
         if (_report is null)
             return;
-        var checks = _report.Checks.ToList();
-        var at = checks.FindIndex(c => c.Id == "autoupdate");
-        checks.Insert(at < 0 ? checks.Count : at, _updates);
+        var checks = _report.Checks.Where(c => (c.Group == CheckGroup.Network) == (_part == SecurityPart.Network)).ToList();
+        if (_part == SecurityPart.Protection)
+        {
+            var at = checks.FindIndex(c => c.Id == "autoupdate");
+            checks.Insert(at < 0 ? checks.Count : at, _updates);
+        }
         Groups.Clear();
         foreach (var group in checks.GroupBy(c => c.Group).OrderBy(g => g.Key))
             Groups.Add(new CheckGroupItem(group.Key, group.Select(c => new CheckItem(c, FixAsync, OpenSettingsAsync)).ToList()));
 
         HostsLines.Clear();
-        foreach (var entry in _report.HostsEntries.Where(e => e.Risk is SecurityStatus.Info or SecurityStatus.Warning or SecurityStatus.Danger))
+        if (_part == SecurityPart.Network)
         {
-            entry.IsSelected = entry.Risk is SecurityStatus.Warning or SecurityStatus.Danger;
-            HostsLines.Add(entry);
+            foreach (var entry in _report.HostsEntries.Where(e => e.Risk is SecurityStatus.Info or SecurityStatus.Warning or SecurityStatus.Danger))
+            {
+                entry.IsSelected = entry.Risk is SecurityStatus.Warning or SecurityStatus.Danger;
+                HostsLines.Add(entry);
+            }
         }
         OnPropertyChanged(nameof(HasHostsLines));
 

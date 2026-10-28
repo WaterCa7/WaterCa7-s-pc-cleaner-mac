@@ -42,8 +42,8 @@ public class MainViewModelTests
     public void PageFactory_BuildsTheSidebar_AndTheDashboardCanNavigate()
     {
         var main = PageFactory.CreateMain(new FakeCommandRunner(), new AppSettings(), Ui.WindowTests.EmptyStartup, Ui.WindowTests.EmptyApps, Ui.WindowTests.TestSecurity);
-        Assert.Equal(new[] { "Dashboard", "Cleaner", "Processes", "Startup", "Programs", "Disk", "Security", "Settings" }, main.Pages.Select(p => p.Key));
-        Assert.Equal(new[] { "Главная", "Очистка", "Процессы", "Автозагрузка", "Программы", "Диски", "Безопасность и сеть", "Настройки" },
+        Assert.Equal(new[] { "Dashboard", "Cleaner", "Processes", "Startup", "Programs", "Disk", "Security", "Network", "Settings" }, main.Pages.Select(p => p.Key));
+        Assert.Equal(new[] { "Главная", "Очистка", "Процессы", "Автозагрузка", "Программы", "Диски", "Безопасность", "Сеть", "Настройки" },
             main.Pages.Select(p => p.Title));
         Assert.IsType<DashboardViewModel>(main.SelectedPage);
     }

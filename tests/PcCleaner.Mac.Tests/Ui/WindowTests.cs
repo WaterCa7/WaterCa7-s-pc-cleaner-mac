@@ -79,7 +79,8 @@ public class WindowTests
         Assert.Contains("Главная", texts);
         Assert.Contains("Очистка", texts);
         Assert.Contains("Диски", texts);
-        Assert.Contains("Безопасность и сеть", texts);
+        Assert.Contains("Безопасность", texts);
+        Assert.Contains("Сеть", texts);
         Assert.Contains("Настройки", texts);
         Assert.Contains("Mac ещё не проверялся", texts);
         Assert.NotNull(window.CaptureRenderedFrame());
