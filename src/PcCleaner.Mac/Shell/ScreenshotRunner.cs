@@ -15,6 +15,7 @@ public static class ScreenshotRunner
     public static int Run(ScreenshotOptions options)
     {
         Console.OutputEncoding = Encoding.UTF8;
+        Directory.CreateDirectory(options.Dir);
         var root = Path.Combine(Path.GetTempPath(), "WaterCa7sScreenshots-" + Guid.NewGuid().ToString("N")[..8]);
         AppPaths.UseRoot(root);
         Dialogs.UseSilentMode();
