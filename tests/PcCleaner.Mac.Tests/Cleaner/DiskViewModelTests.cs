@@ -54,6 +54,25 @@ public class DiskViewModelTests
     }
 
     [Fact]
+    public async Task RefreshCommand_ReadsTheVolumesAgain()
+    {
+        using var home = new FakeHome();
+        var runner = CleanerViewModelTests.Runner();
+        var vm = Create(home, runner);
+        await vm.OnNavigatedToAsync();
+        Assert.Equal(2, vm.Volumes.Count);
+        var before = runner.Calls.Count(c => c.StartsWith("/bin/df", StringComparison.Ordinal));
+
+        runner.On("/bin/df", new[] { "-k", "-P" }, new CommandResult(0,
+            "Filesystem     1024-blocks      Used Available Capacity  Mounted on\n" +
+            "/dev/disk3s5     482797652 312345678 150123456    68%    /System/Volumes/Data\n", ""));
+        await vm.RefreshCommand.ExecuteAsync();
+
+        Assert.Equal(before + 1, runner.Calls.Count(c => c.StartsWith("/bin/df", StringComparison.Ordinal)));
+        Assert.Single(vm.Volumes);
+    }
+
+    [Fact]
     public async Task LargeFile_ToTheTrash_AfterYes_AndTheRowGoes()
     {
         using var home = new FakeHome();

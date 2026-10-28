@@ -26,7 +26,10 @@
       </ItemsControl>
 
       <Border Classes="InnerCard">
-        <TextBlock Text="{Binding SnapshotsText}" TextWrapping="Wrap" FontSize="12.5" />
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Content="Обновить" Command="{Binding RefreshCommand}" VerticalAlignment="Center" Margin="12,0,0,0" />
+          <TextBlock Text="{Binding SnapshotsText}" TextWrapping="Wrap" FontSize="12.5" VerticalAlignment="Center" />
+        </DockPanel>
       </Border>
 
       <Border Classes="Card">

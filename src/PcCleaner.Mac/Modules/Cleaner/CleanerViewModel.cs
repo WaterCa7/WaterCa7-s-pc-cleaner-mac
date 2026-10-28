@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text;
 using PcCleaner.Core;
-using PcCleaner.Modules.Dashboard;
 
 namespace PcCleaner.Modules.Cleaner;
 
@@ -19,7 +18,7 @@ public sealed class CleanerViewModel : PageViewModel
     private string? _lastResult;
     private bool _showFdaHint;
 
-    public CleanerViewModel(CleanerService cleaner, ITrash trash, MacShell shell, Func<FdaState> fda, string home)
+    public CleanerViewModel(CleanerService cleaner, MacShell shell, Func<FdaState> fda)
     {
         _cleaner = cleaner;
         _shell = shell;

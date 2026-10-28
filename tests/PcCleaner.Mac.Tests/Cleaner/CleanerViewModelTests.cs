@@ -27,15 +27,13 @@ public class CleanerViewModelTests
         .OnFixture("/usr/bin/tmutil", new[] { "listlocalsnapshots", "/" }, "tmutil/three.txt")
         .On("/usr/bin/osascript", new[] { "-e", "tell application \"Finder\" to empty the trash" }, new CommandResult(0, "", ""));
 
-    internal static CleanerViewModel Create(FakeHome home, FakeCommandRunner? runner = null, ITrash? trash = null, FdaState fda = FdaState.Denied)
+    internal static CleanerViewModel Create(FakeHome home, FakeCommandRunner? runner = null, FdaState fda = FdaState.Denied)
     {
         runner ??= Runner();
         return new CleanerViewModel(
             new CleanerService(home.Path, runner, new ManagedFileRemover(), () => fda, () => FakeHome.Now),
-            trash ?? new FakeTrash(),
             new MacShell(runner),
-            () => fda,
-            home.Path);
+            () => fda);
     }
 
     private static async Task Confirmed(Func<Task> action)
