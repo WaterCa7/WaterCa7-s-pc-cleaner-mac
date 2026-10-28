@@ -69,6 +69,9 @@ public class ProgramsViewModelTests
         {
             Vm.Selected = Vm.Apps.Single(r => r.Name == name);
             await Vm.LeftoverSearch;
+            // The list is filled by the view model's own continuation of that search (it may run after ours): wait until it is done.
+            for (var i = 0; Vm.LeftoversLoading && i < 1000; i++)
+                await Task.Delay(5);
             return Vm.Selected;
         }
 
