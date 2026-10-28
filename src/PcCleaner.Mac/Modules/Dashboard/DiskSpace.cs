@@ -24,7 +24,7 @@ public static class DiskSpaceRules
                 Title = "Мало свободного места на диске",
                 Details = details,
                 Severity = IssueSeverity.High,
-                TargetPageKey = "Cleaner",
+                TargetPageKey = "Disk",
             };
         }
         if (percent < 20)
@@ -35,7 +35,7 @@ public static class DiskSpaceRules
                 Title = "Свободного места на диске становится мало",
                 Details = details,
                 Severity = IssueSeverity.Medium,
-                TargetPageKey = "Cleaner",
+                TargetPageKey = "Disk",
             };
         }
         return null;

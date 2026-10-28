@@ -46,9 +46,10 @@ public static class PageFactory
                 new ProgramsContributor(programs),
                 new SecurityContributor(security, fixes),
             }, info, settings, navigator),
-            new CleanerViewModel(cleaner, new DiskService(runner), new SpaceAnalyzer(AppPaths.Home), trash, shell, fda, AppPaths.Home),
+            new CleanerViewModel(cleaner, trash, shell, fda, AppPaths.Home),
             new ProcessesViewModel(processes, startup, loginItems, shell),
             new ProgramsViewModel(programs, shell, AppPaths.Home),
+            new DiskViewModel(new DiskService(runner), new SpaceAnalyzer(AppPaths.Home), trash, shell, AppPaths.Home),
             new SecurityViewModel(security, fixes, shell),
             new SettingsViewModel(shell, fda, new BackupRestorer(backups, AppPaths.Home, uid, runner, admin, loginItems)),
         };

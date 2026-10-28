@@ -20,7 +20,7 @@ public class DiskSpaceTests
         if (issue is not null)
         {
             Assert.Equal("Очистка и диски", issue.Module);
-            Assert.Equal("Cleaner", issue.TargetPageKey);
+            Assert.Equal("Disk", issue.TargetPageKey);
             Assert.Null(issue.FixAsync);
         }
     }

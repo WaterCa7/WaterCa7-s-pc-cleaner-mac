@@ -37,6 +37,9 @@
     <DataTemplate DataType="cleaner:CleanerViewModel">
       <cleaner:CleanerView />
     </DataTemplate>
+    <DataTemplate DataType="cleaner:DiskViewModel">
+      <cleaner:DiskView />
+    </DataTemplate>
     <DataTemplate DataType="processes:ProcessesViewModel">
       <processes:ProcessesView />
     </DataTemplate>

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace PcCleaner.Mac.Tests.Ui;
 
-/// <summary>The «Очистка и диски» page on a home folder with things to clean (window tests run alone, so the home may be swapped).</summary>
+/// <summary>The «Очистка» and «Диски» pages on a home folder with things to clean (window tests run alone, so the home may be swapped).</summary>
 [Collection(UiCollection.Name)]
 public class CleanerPageTests
 {
@@ -59,7 +59,7 @@ public class CleanerPageTests
             : Path.Combine(TestEnvironment.Root, "shots-cleaner");
 
     [AvaloniaFact]
-    public async Task CleanerPage_ShowsCategoriesAndDisks()
+    public async Task CleanerPage_ShowsCategories()
     {
         using var home = FilledHome();
         await WithHome(home, async () =>
@@ -70,8 +70,6 @@ public class CleanerPageTests
             vm.NavigateTo("Cleaner");
             var page = (CleanerViewModel)vm.SelectedPage!;
             await page.OnNavigatedToAsync();
-            page.Threshold = CleanerViewModel.Thresholds[0];
-            await page.FindLargeFilesCommand.ExecuteAsync();
             Dispatcher.UIThread.RunJobs();
 
             var texts = WindowTests.Texts(window);
@@ -82,13 +80,30 @@ public class CleanerPageTests
 
             Directory.CreateDirectory(ShotsDir());
             window.CaptureRenderedFrame()!.Save(Path.Combine(ShotsDir(), "02-Cleaner.png"), new PngBitmapEncoderOptions());
+        });
+    }
 
-            window.GetVisualDescendants().OfType<TabControl>().First().SelectedIndex = 1;
+    [AvaloniaFact]
+    public async Task DiskPage_ShowsTheVolumes()
+    {
+        using var home = FilledHome();
+        await WithHome(home, async () =>
+        {
+            var vm = PageFactory.CreateMain(Runner(), new AppSettings(), WindowTests.EmptyStartup, WindowTests.EmptyApps, WindowTests.TestSecurity);
+            using var shown = new WindowTests.ShownWindow(vm);
+            var window = shown.Window;
+            vm.NavigateTo("Disk");
+            var page = (DiskViewModel)vm.SelectedPage!;
+            await page.OnNavigatedToAsync();
+            page.Threshold = DiskViewModel.Thresholds[0];
+            await page.FindLargeFilesCommand.ExecuteAsync();
             Dispatcher.UIThread.RunJobs();
-            texts = WindowTests.Texts(window);
+
+            var texts = WindowTests.Texts(window);
             Assert.Contains("Macintosh HD", texts);
             Assert.Contains("Мой диск", texts);
             Assert.Contains("Установщик.dmg", texts);
+            Directory.CreateDirectory(ShotsDir());
             window.CaptureRenderedFrame()!.Save(Path.Combine(ShotsDir(), "02-Cleaner-disks.png"), new PngBitmapEncoderOptions());
         });
     }

@@ -77,7 +77,8 @@ public class WindowTests
         Dispatcher.UIThread.RunJobs();
         var texts = Texts(window);
         Assert.Contains("Главная", texts);
-        Assert.Contains("Очистка и диски", texts);
+        Assert.Contains("Очистка", texts);
+        Assert.Contains("Диски", texts);
         Assert.Contains("Безопасность и сеть", texts);
         Assert.Contains("Настройки", texts);
         Assert.Contains("Mac ещё не проверялся", texts);
