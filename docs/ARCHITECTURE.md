@@ -10,13 +10,15 @@ WaterCa7sPcCleaner.Mac.sln
 src/PcCleaner.Mac/
   Program.cs              запуск окна или режима --screenshots
   App.axaml(.cs)          тема, шаблоны страниц, меню macOS, обработчики ошибок, окна диалогов
-  MainWindow.axaml        боковое меню, заголовок страницы, полоса занятости с «Отмена», строка состояния
-  MainViewModel.cs        список страниц и навигация (INavigator)
+  MainWindow.axaml        боковое меню (основной список и «Профиль» с «Настройками» внизу), заголовок раздела, полоса вкладок,
+                          полоса занятости с «Отмена», нижняя строка — версия и состояние обновления
+  MainViewModel.cs        страницы, разделы меню и навигация (INavigator)
   Themes/                 Theme.axaml (цвета и кисти), Styles.axaml (классы стилей), Icons.axaml (значки Fluent UI)
   Shared/                 копии файлов Windows-версии (откуда — Shared/SOURCE.md)
-  Core/                   общие сервисы (ниже)
+  Core/                   общие сервисы (ниже); SectionViewModel — раздел меню из одной или нескольких страниц-вкладок
   Modules/<Key>/          раздел = Service + ViewModel + View
-  Shell/                  фабрика страниц, конвертеры, диалог, кольцо оценки, будущие разделы, скриншоты
+  Shell/                  фабрика страниц, ShellMenu (из каких страниц собраны разделы меню), конвертеры, диалог, кольцо оценки,
+                          скриншоты
   Assets/                 AppIcon.icns, лицензия значков
 tests/PcCleaner.Mac.Tests/  xUnit v3 + Avalonia.Headless; Fixtures/ — сохранённый вывод утилит macOS
 tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh, make-icon.ps1
@@ -24,18 +26,38 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 
 ## Разделы
 
-| Key        | Раздел                  | Этап | Проверка для «Главной» (IHealthContributor) |
-|------------|-------------------------|------|---------------------------------------------|
-| Dashboard  | Главная                 | 1    | — (собирает все остальные)                  |
-| Cleaner    | Очистка и диски         | 2    | CleanerContributor                          |
-| Processes  | Процессы и автозагрузка | 3    | ProcessesContributor                        |
-| Programs   | Программы               | 4    | ProgramsContributor                         |
-| Security   | Безопасность и сеть     | 5    | SecurityContributor                         |
-| Settings   | Настройки               | 1    | —                                           |
+Меню слева: **Главная, Очистка, Система, Защита**, линия, затем **Профиль, Настройки**. «Система» и «Защита» — разделы с
+вкладками: полоса вкладок стоит над страницей, заголовок над ней — название раздела; у раздела из одной страницы полосы
+нет. Раздел открывается на вкладке, где вы были в прошлый раз.
+
+| Раздел меню | Вкладка (страница) | Key       | Модель представления | Этап  | Проверка для «Главной» (IHealthContributor) |
+|-------------|--------------------|-----------|----------------------|-------|---------------------------------------------|
+| Главная     | —                  | Dashboard | DashboardViewModel   | 1     | — (собирает все остальные)                  |
+| Очистка     | —                  | Cleaner   | CleanerViewModel     | 2     | CleanerContributor                          |
+| Система     | Процессы           | Processes | ProcessesViewModel   | 3     | ProcessesContributor                        |
+| Система     | Автозагрузка       | Startup   | StartupViewModel     | 3     | ProcessesContributor (общая с «Процессами») |
+| Система     | Программы          | Programs  | ProgramsViewModel    | 4     | ProgramsContributor                         |
+| Система     | Диски              | Disk      | DiskViewModel        | 2     | CleanerContributor (общая с «Очисткой»)     |
+| Защита      | Безопасность       | Security  | SecurityViewModel    | 5     | SecurityContributor                         |
+| Защита      | Сеть               | Network   | SecurityViewModel (`SecurityPart.Network`) | 5 | SecurityContributor (общая с «Безопасностью») |
+| Профиль     | —                  | Profile   | ProfileViewModel     | меню  | —                                           |
+| Настройки   | —                  | Settings  | SettingsViewModel    | 1     | —                                           |
+
+«Очистка» — кэши, журналы и Корзина; диски, снимки Time Machine, большие папки и файлы вынесены во вкладку «Диски»
+(`DiskViewModel`, файлы лежат в `Modules/Cleaner/`). «Автозагрузка» отделена от «Процессов» (`StartupViewModel` в
+`Modules/Processes/`), «Сеть» — от «Безопасности»: `SecurityViewModel` одним классом строит обе страницы, `SecurityPart`
+(`Protection` / `Network`) выбирает, какие проверки показать. «Профиль» пока заглушка («Вход в аккаунт появится здесь»):
+ничего не читает и не меняет.
+
+Какие страницы собраны в какой раздел, задаёт `Shell/ShellMenu.Build(pages)` (раздел → ключи страниц, основной список или низ
+меню); страница, которой нет ни в одном разделе, получает свой раздел в конце основного списка. `SectionViewModel` хранит
+вкладки раздела, `ShowTabs` (полоса нужна, если вкладок больше одной), `EntryTab` (куда открывать) и место (`SectionPlace.Top`
+/ `Bottom`); `MainViewModel` отдаёт `Sections`, `TopSections`, `BottomSections`, выбранный раздел и `HeaderTitle`.
+`NavigateTo(ключ страницы)` открывает нужную вкладку нужного раздела — так кнопки «Главной» ведут прямо на «Диски» или «Сеть».
 
 Страницы создаёт `Shell/PageFactory.CreateMain(runner, settings, startupFolders?, appFolders?, securityPaths?)` (необязательные
-параметры — папки и файлы, которые тесты подменяют временными). Новый раздел: сервис + `PageViewModel` + `UserControl` с `x:DataType`, шаблон в
-`App.axaml` (`Application.DataTemplates`), строка в `PageFactory`.
+параметры — папки и файлы, которые тесты подменяют временными). Новый раздел или вкладка: сервис + `PageViewModel` + `UserControl` с
+`x:DataType`, шаблон в `App.axaml` (`Application.DataTemplates`), строка в `PageFactory` и строка в `ShellMenu`.
 
 ## Core API (кратко)
 
@@ -70,7 +92,7 @@ tools/mac/                Info.plist, make-app.sh, sign.sh, capture-fixtures.sh,
 - `MacPups.Match(names…)` — известные нежелательные программы для Mac (используется и в «Программах»).
 - `WebLinks.Search/VirusTotal` — страницы, которые открываются по кнопке (VirusTotal — по SHA-256, файл не отправляется).
 
-## Процессы и автозагрузка
+## Процессы и автозагрузка (вкладки «Процессы» и «Автозагрузка» раздела «Система»)
 
 - `ProcessesService`: `ps` (comm и args отдельно, объединение по PID), подписи — один раз на программу (.app),
   без полной проверки файлов; `ProcessRules` — системные пути, кого нельзя завершать, подсказки (`Hint(Text, Strong)`).
@@ -122,10 +144,12 @@ SelectionBrush`. Классы стилей: текст `H1 H2 H3 Muted BigNumber
 ## Режим проверки (скриншоты)
 
 ```
-WaterCa7sPcCleaner --screenshots <папка> [--page Dashboard,Settings] [--no-scan] [--size 1040x660]
+WaterCa7sPcCleaner --screenshots <папка> [--page Dashboard,System,Protection/Network] [--no-scan] [--size 1040x660]
 ```
-Данные программы — во временной папке, все вопросы — «Нет», страницы рисуются без экрана после проверки только на
-чтение, сохраняются `NN-Key.png` и `log.txt`. Код выхода 1 — если страница не снялась или в журнале есть ошибки.
+`--page` принимает ключ страницы (`Disk`), раздел (`System` — все его вкладки) или `Раздел/Вкладка` (`System/Disk`); без
+`--page` снимаются все вкладки всех разделов. Данные программы — во временной папке, все вопросы — «Нет», страницы
+рисуются без экрана после проверки только на чтение, сохраняются `NN-Key.png` (раздел из одной страницы),
+`NN-Раздел-Вкладка.png` (например `06-System-Disk.png`) и `log.txt`. Код выхода 1 — если страница не снялась или в журнале есть ошибки.
 Тесты (`Ui/DemoScreenshotTests`) снимают те же страницы на образцах вывода утилит в папку `MAC_SCREENSHOTS_DIR`.
 
 ## Сборка и проверка
@@ -139,8 +163,10 @@ CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, 
 подписанный `.app` в zip. Подпись — самоподписанным сертификатом из секретов `MAC_SIGNING_P12` /
 `MAC_SIGNING_PASSWORD`, без них — ad-hoc.
 
-## Безопасность и сеть
+## Безопасность и сеть (вкладки «Безопасность» и «Сеть» раздела «Защита»)
 
+- Обе вкладки — один `SecurityViewModel` с `SecurityPart` (`Protection` — Key `Security`, карточка «Защита Mac»; `Network` —
+  Key `Network`, карточка «Сеть Mac»: прокси, DNS, hosts, Wi-Fi); сервис, исправления и отчёт общие.
 - `SecurityService.CheckAsync` — все проверки таблицы спецификации одним чтением → `SecurityReport` (проверки + сырые
   факты для исправлений: прокси и DNS по службам, текст hosts, профили); `UpdatesAsync` — `softwareupdate -l` отдельно
   (до минуты). Утилита не ответила — проверка «нет данных», а не ошибка раздела.
@@ -158,7 +184,8 @@ CI (`.github/workflows/ci.yml`) — `macos-14` и `macos-latest`: сборка, 
   этого репозитория), `UpdateSignature` (ECDSA P-256, DER) и `UpdateKeys` (свой ключ Mac; закрытый — только в секрете
   `UPDATE_SIGNING_KEY` и резервной копии), `UpdateStore` (`Updates/<версия>/`, `state.json`), `UpdateClient` (https,
   размер и SHA-256 при скачивании), `UpdateService` (состояния, проверка в фоне, установка до окна, `--updated-from`),
-  `UpdateBanner` (полоса в окне).
+  `UpdateBanner` (полоса над страницей), `UpdateFooter` (правый угол нижней строки окна: `v1.2.0 · последняя версия`, при
+скачивании и готовой версии — с её номером; чистая функция, без проверки сети).
 - Своё для Mac: `UpdateEnvironment` (путь `.app`, сборка для разработки, AppTranslocation, образ диска, папка без прав
   записи), `AppZip` (zip читается в память один раз — хэш и распаковка по тем же байтам; только записи внутри
   `WaterCa7s PC Cleaner.app/`), `BundleInstaller` (`.app.new` → `codesign --verify --deep --strict`, bundle id, версия,
