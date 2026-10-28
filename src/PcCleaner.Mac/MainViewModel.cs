@@ -5,18 +5,16 @@ using PcCleaner.Core.Updates;
 
 namespace PcCleaner;
 
-/// <summary>The window: the page list, navigation, the update strip and the status line.</summary>
+/// <summary>The window: the page list, navigation, the update strip and the bottom line.</summary>
 public sealed class MainViewModel : ObservableObject, INavigator
 {
     private PageViewModel? _selectedPage;
-    private string _statusText = "Готово";
     private UpdateService? _updates;
     private bool _updateBannerDismissed;
 
     public MainViewModel(IReadOnlyList<PageViewModel> pages)
     {
         Pages = new ObservableCollection<PageViewModel>(pages);
-        Log.EntryAdded += OnLogEntry;
         UpdateBannerCommand = new AsyncRelayCommand(RunUpdateBannerActionAsync);
         DismissUpdateBannerCommand = new RelayCommand(() =>
         {
@@ -67,6 +65,7 @@ public sealed class MainViewModel : ObservableObject, INavigator
         OnPropertyChanged(nameof(ShowUpdateBanner));
         OnPropertyChanged(nameof(UpdateBannerText));
         OnPropertyChanged(nameof(UpdateBannerAction));
+        OnPropertyChanged(nameof(FooterText));
     }
 
     private async Task RunUpdateBannerActionAsync()
@@ -106,16 +105,8 @@ public sealed class MainViewModel : ObservableObject, INavigator
         }
     }
 
-    public string StatusText
-    {
-        get => _statusText;
-        private set => Set(ref _statusText, value);
-    }
-
-    public string VersionText => "v" + AppInfo.Version;
-
-    /// <summary>The status line shows the latest log entry (log entries arrive on the UI thread).</summary>
-    internal void OnLogEntry(LogEntry entry) => StatusText = entry.Message;
+    /// <summary>The corner of the bottom line: «v1.2.0 · последняя версия» (<see cref="UpdateFooter"/>); the version alone without an updater.</summary>
+    public string FooterText => Updates is null ? "v" + AppInfo.Version : UpdateFooter.Text(Updates.State, Updates.Manifest, Updates.CurrentVersion);
 
     public void NavigateTo(string pageKey)
     {

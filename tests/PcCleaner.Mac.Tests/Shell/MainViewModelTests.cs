@@ -35,14 +35,8 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void StatusText_ShowsTheLatestLogEntry()
-    {
-        var vm = Create();
-        // Other tests write to the shared log at the same time: listen only to this entry.
-        Log.EntryAdded -= vm.OnLogEntry;
-        vm.OnLogEntry(new LogEntry(DateTime.Now, LogLevel.Info, "Статус для теста"));
-        Assert.Equal("Статус для теста", vm.StatusText);
-    }
+    public void TheFooter_ShowsTheVersion_WithoutAnUpdater()
+        => Assert.Equal("v" + AppInfo.Version, Create().FooterText);
 
     [Fact]
     public void PageFactory_BuildsTheSidebar_AndTheDashboardCanNavigate()

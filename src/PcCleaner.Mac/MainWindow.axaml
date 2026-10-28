@@ -82,12 +82,8 @@
       <ContentControl Grid.Row="3" Margin="32,4,24,16" Content="{Binding SelectedPage}" />
 
       <Border Grid.Row="4" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="32,7">
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Right" Classes="Muted" FontSize="11.5" TextWrapping="NoWrap">
-            <Run Text="{Binding VersionText}" /><Run Text=" · Сделано для WaterCa7" />
-          </TextBlock>
-          <TextBlock Classes="Muted" FontSize="11.5" Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-        </DockPanel>
+        <!-- The version and the state of the updater (Core/Updates/UpdateFooter). -->
+        <TextBlock HorizontalAlignment="Right" Classes="Muted" FontSize="11.5" TextWrapping="NoWrap" Text="{Binding FooterText}" />
       </Border>
     </Grid>
   </Grid>

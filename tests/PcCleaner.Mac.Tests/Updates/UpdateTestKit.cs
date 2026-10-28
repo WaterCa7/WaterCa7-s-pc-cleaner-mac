@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using PcCleaner.Core;
+using PcCleaner.Core.Updates;
 
 namespace PcCleaner.Mac.Tests.Updates;
 
@@ -31,6 +32,10 @@ internal sealed class UpdateTestKit : IDisposable
                 ["osx-arm64"] = new { name = "WaterCa7sPcCleaner-osx-arm64.zip", url = url ?? Url(version), size, sha256 },
             },
         });
+
+    /// <summary>The parsed manifest of <paramref name="version"/> for Apple Silicon (independent of the machine that runs the tests).</summary>
+    public static UpdateManifest Manifest(string version)
+        => UpdateManifest.Parse(ManifestJson(version, 2_000_000, new string('a', 64)), "osx-arm64", out _)!;
 
     /// <summary>update.json of a release with a zip for every given platform ("osx-arm64", "osx-x64").</summary>
     public static byte[] ManifestJsonFor(string version, long size, string sha256, params string[] platforms)
